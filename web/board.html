@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<polymer-element name="risk-board">
+  <template>
+    <style>
+      .country {
+        fill: white;
+        stroke: black;
+        stroke-width: 1;
+      }
+      
+      .country:hover {
+        stroke-width: 2;
+      }
+    </style>
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+      <rect id="background" x="0" y="0" width="800" height="540" rx="10" ry="10" style="fill: powderblue;"></rect>
+      
+      <g id="countries">
+        <template repeat="{{country in countries}}">
+          <path id="{{country['id']}}" class="country" d="{{country['data']}}" 
+            style="{{countryStyles[country['id']]}}" on-click="{{countryClick}}">
+            <text style="font-size: 18px;">{{country['id']}}</text>
+          </path>
+        </template>
+      </g>
+    </svg>
+  </template>
+  <script type="application/dart" src="board.dart"></script>
+</polymer-element>
+
