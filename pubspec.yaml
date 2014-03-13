@@ -1,7 +1,9 @@
 name: risk
 description: A sample Polymer application
 dependencies:
-    polymer: any
+  polymer: any
+dev_dependencies:
+  unittest: any
 transformers:
 - polymer:
     entry_points: web/index.html
