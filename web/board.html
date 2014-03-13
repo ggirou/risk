@@ -9,18 +9,41 @@
         stroke-width: 1;
       }
       
+      .country.continent-asia {
+        fill: green;
+      }
+      .country.continent-north_america {
+        fill: yellow;
+      }
+      .country.continent-south_america {
+        fill: orange;
+      }
+      .country.continent-africa {
+        fill: brown;
+      }
+      .country.continent-europe {
+        fill: blue;
+      }
+      .country.continent-australia {
+        fill: pink;
+      }
+
+      .country.selected {
+        fill: red;
+      }
+
       .country:hover {
         stroke-width: 2;
       }
     </style>
+    <div>{{ selection }}&nbsp;</div>
     <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
       <rect id="background" x="0" y="0" width="800" height="540" rx="10" ry="10" style="fill: powderblue;"></rect>
       
       <g id="countries">
         <template repeat="{{country in countries}}">
-          <path id="{{country['id']}}" class="country" d="{{country['data']}}" 
-            style="{{countryStyles[country['id']]}}" on-click="{{countryClick}}">
-            <text style="font-size: 18px;">{{country['id']}}</text>
+          <path id="{{ country.id }}" class="country continent-{{ country.continent }}" d="{{ country.svgPath }}" 
+            on-click="{{ countryClick }}" on-mouseEnter="{{ countryEnter }}" on-mouseLeave="{{ countryLeave }}">
           </path>
         </template>
       </g>
