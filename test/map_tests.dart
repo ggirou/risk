@@ -24,9 +24,18 @@ main() {
     }
   });
 
-  skip_test('each country should have at least 1 neighbour', () {
+  test('each country should have at least 1 neighbour', () {
     for (final Country country in COUNTRIES) {
       expect(country.neighbours.length, isPositive);
+    }
+  });
+
+  test('each neighbourhood should be mutual', () {
+    for (final Country country in COUNTRIES) {
+      for (final Country neighbour in country.neighbours) {
+        expect(neighbour.neighbours, contains(country), reason:
+            '${country.id} and ${neighbour.id} are not mutual neighbours');
+      }
     }
   });
 }
