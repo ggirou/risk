@@ -12,17 +12,15 @@ import 'package:risk/map.dart';
 class RiskBoard extends PolymerElement {
   final List<Country> countries = COUNTRIES;
 
-  final Map<Country, String> svgPaths = toObservable({});
+  @observable
+  var svgPaths;
 
   @observable
   String selection;
 
   RiskBoard.created(): super.created() {
-    HttpRequest.getString('svg-datas.json').then(JSON.decode).then((svgDatas) {
-      for (final c in countries) {
-        svgPaths[c] = svgDatas[c.id];
-      }
-    });
+    HttpRequest.getString('svg-datas.json').then(JSON.decode).then((e) =>
+        svgPaths = e);
   }
 
   countryClick(Event e, var detail, Element target) => target.classes.toggle(
