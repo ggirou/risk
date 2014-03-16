@@ -1,7 +1,9 @@
 library board_model;
 
+import 'package:observe/observe.dart';
 import 'dart:convert';
 
+@reflectable
 class Country {
   final String id;
   final String continent;
