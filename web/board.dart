@@ -12,7 +12,7 @@ import 'package:risk/map.dart';
 class RiskBoard extends PolymerElement {
   final List<Country> countries = COUNTRIES;
 
-  final _svgPaths = <Country, String>{};
+  final Map<Country, String> svgPaths = toObservable({});
 
   @observable
   String selection;
@@ -21,13 +21,10 @@ class RiskBoard extends PolymerElement {
     HttpRequest.getString('svg-datas.json').then((json) {
       final svgDatas = JSON.decode(json);
       for (final c in countries) {
-        _svgPaths[c] = svgDatas[c.id];
+        svgPaths[c] = svgDatas[c.id];
       }
-      notifyPropertyChange(#countries, null, countries);
     });
   }
-
-  String svgPath(Country country) => _svgPaths[country];
 
   countryClick(Event e, var detail, Element target) => target.classes.toggle(
       'selected');
