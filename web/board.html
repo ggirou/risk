@@ -24,7 +24,7 @@
       
       <g id="countries">
         <template repeat="{{country in countries}}">
-          <path id="{{ country.id }}" class="country" d="{{ country.svgPath }}" 
+          <path id="{{ country.id }}" class="country" d="{{ country | svgPath }}" 
             on-click="{{ countryClick }}" on-mouseEnter="{{ countryEnter }}" on-mouseLeave="{{ countryLeave }}">
           </path>
         </template>
