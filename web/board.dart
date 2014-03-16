@@ -1,20 +1,26 @@
 import 'dart:html';
+import 'dart:convert';
+
+@MirrorsUsed(targets: 'risk.map')
+import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
-import 'package:risk/countries.dart' as c show decodeJson;
-import 'package:risk/countries.dart' show Country;
+import 'package:risk/map.dart';
 
 
 @CustomTag('risk-board')
 class RiskBoard extends PolymerElement {
-  final List<Country> countries = toObservable([]);
+  final List<Country> countries = COUNTRIES;
+
+  @observable
+  var svgPaths;
 
   @observable
   String selection;
 
   RiskBoard.created(): super.created() {
-    HttpRequest.getString('countries.json').then((json) => countries.addAll(
-        c.decodeJson(json)));
+    HttpRequest.getString('svg-datas.json').then(JSON.decode).then((e) =>
+        svgPaths = e);
   }
 
   countryClick(Event e, var detail, Element target) => target.classes.toggle(
