@@ -1,8 +1,5 @@
 library risk.map;
 
-import 'package:observe/observe.dart';
-
-@reflectable
 class Continent {
   final String id;
   final int bonus;
@@ -13,7 +10,6 @@ class Continent {
       ).toList();
 }
 
-@reflectable
 class Country {
   final String id;
   final String _continentId;

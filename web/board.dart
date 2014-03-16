@@ -1,6 +1,9 @@
 import 'dart:html';
 import 'dart:convert';
 
+@MirrorsUsed(targets: 'risk.map')
+import 'dart:mirrors';
+
 import 'package:polymer/polymer.dart';
 import 'package:risk/map.dart';
 
