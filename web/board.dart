@@ -18,8 +18,7 @@ class RiskBoard extends PolymerElement {
   String selection;
 
   RiskBoard.created(): super.created() {
-    HttpRequest.getString('svg-datas.json').then((json) {
-      final svgDatas = JSON.decode(json);
+    HttpRequest.getString('svg-datas.json').then(JSON.decode).then((svgDatas) {
       for (final c in countries) {
         svgPaths[c] = svgDatas[c.id];
       }
