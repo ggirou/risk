@@ -1,9 +1,10 @@
 library board_model;
 
-import 'package:observe/observe.dart';
 import 'dart:convert';
 
-@reflectable
+@MirrorsUsed(targets: 'board_model')
+import 'dart:mirrors';
+
 class Country {
   final String id;
   final String continent;
