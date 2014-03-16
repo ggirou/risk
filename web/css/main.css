@@ -1,3 +1,46 @@
-.avatars img {
-  width: 64px;
+@font-face {
+  font-family: Risk;
+  /*src: url("countries-font#RiskFont") format("svg");*/
+  src: url(../font/countries.ttf) format("truetype");
+}
+
+.country-font {
+  font-family: Risk;
+  line-height: 1em;
+}
+
+.vcenter {
+  vertical-align: middle;
+}
+
+#avatars img {
+  width: 48px;
+}
+
+#history img {
+  width: 20px;
+}
+
+#history .pre-scrollable {
+  max-height: 100px;
+}
+
+#battle img {
+  width: 48px;
+}
+
+#battle .country-font {
+  font-size: 7em;
+}
+
+#battle .glyphicon {
+  font-size: 2em;
+}
+
+#battle .attacker-disabled {
+  /* TODO */
+}
+
+#battle .defender-disabled {
+  /* TODO */
 }

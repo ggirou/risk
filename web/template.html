@@ -10,16 +10,15 @@
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
   </head>
   <body>
-    <section class="container">
+    <section class="container-fluid">
       <!-- TODO: better header -->
       <h1>Risk</h1>
       <div class="row">
-        <div class="col-lg-8">
-          <!-- TODO: adapt the svg to the size of the parent div -->
-          <img src="board.svg">
-        </div>
-        <div class="col-lg-4 avatars">
-          <ul class="nav nav-pills nav-stacked navbar-inverse img-rounded">
+        <!-- Risk Board -->
+        <img src="board.svg" class="col-md-8">
+        <div class="col-md-4">
+          <!-- Players List -->
+          <ul id="avatars" class="nav nav-pills nav-stacked navbar-inverse img-rounded">
             <li>
               <a>
                 <img src="img/avatars/castro.png" class="img-rounded" alt="Avatar">
@@ -64,8 +63,76 @@
               </a>
             </li>
           </ul>
+          <!-- Game history -->
+          <div id="history" class="panel panel-default">
+            <div class="panel-heading">
+              <h3 class="panel-title">History</h3>
+            </div>
+            <div class="panel-body pre-scrollable">
+              <ul class="list-unstyled">
+                <li><img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon joined the game</li>
+                <li><img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon placed an army on Eastern Australia</li>
+                <li><img src="img/avatars/staline.png" class="img-rounded" alt="Avatar"> Ringo Starr attacked <img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon's Eastern Australia with 3 armies from Western Australia</li>
+                <li><img src="img/avatars/staline.png" class="img-rounded" alt="Avatar"> Ringo Starr conquered <img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon's Eastern Australia with 3 armies from Western Australia</li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </section>
+    
+    <!-- <div class="modal fade">  -->
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            <h4 class="modal-title">Battle</h4>
+          </div>
+          <div class="modal-body">
+            <table id="battle" class="table table-striped">
+              <thead>
+                <tr>
+                  <th colspan="2">
+                    <h3><img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon</h3>
+                  </th>
+                  <th colspan="2" class="text-right">
+                    <h3>Ringo Starr <img src="img/avatars/staline.png" class="img-rounded" alt="Avatar"></h3>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="text-left"><span class="country-font" style="color: green;">J</span></td>
+                  <td class="text-right vcenter">
+                    <!-- Clickable to select number of armies to engage -->
+                    <i class="glyphicon glyphicon-user"></i><br>
+                    <i class="glyphicon glyphicon-user"></i><br>
+                    <i class="glyphicon glyphicon-user"></i><br>
+                  </td>
+                  <td>
+                    <!-- Clickable to select number of armies to engage -->
+                    <i class="glyphicon glyphicon-user"></i><br>
+                    <i class="glyphicon glyphicon-user"></i><br>
+                  </td>
+                  <td class="text-right"><span class="country-font" style="color: red;">m</span></td>
+                </tr>
+                <tr>
+                  <td>
+                  </td>
+                  <td class="text-right">
+                    <button type="button" class="btn btn-danger">Attack</button>
+                  </td>
+                  <td>
+                    <button type="button" class="btn btn-danger">Defend</button>
+                  </td>
+                  <td>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    <!-- </div> -->
   </body>
 </html>
