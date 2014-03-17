@@ -2,6 +2,7 @@ library risk.game.test;
 
 import 'package:unittest/unittest.dart';
 import 'package:risk/game.dart';
+import 'package:risk/event.dart';
 import 'package:collection/equality.dart';
 
 const riskGameEq = const RiskGameEquality();
@@ -17,13 +18,7 @@ main() {
     group('on ArmyPlaced', () {
       test('should add an army on a neutral country', () {
         // GIVEN
-        var event = {
-          "event": "ArmyPlaced",
-          "data": {
-            "playerId": 0,
-            "country": "eastern_australia"
-          },
-        };
+        var event = new ArmyPlaced(0, "eastern_australia");
 
         // WHEN
         eventHandler.handle(event);
@@ -38,13 +33,7 @@ main() {
 
       test('should add an army on country owned by the player', () {
         // GIVEN
-        var event = {
-          "event": "ArmyPlaced",
-          "data": {
-            "playerId": 1,
-            "country": "western_australia"
-          },
-        };
+        var event = new ArmyPlaced(1, "western_australia");
 
         // WHEN
         eventHandler.handle(event);
@@ -59,13 +48,7 @@ main() {
 
       test('should NOT add an army on country owned by another player', () {
         // GIVEN
-        var event = {
-          "event": "ArmyPlaced",
-          "data": {
-            "playerId": 0,
-            "country": "western_australia"
-          },
-        };
+        var event = new ArmyPlaced(0, "western_australia");
 
         // WHEN
         eventHandler.handle(event);
@@ -79,13 +62,7 @@ main() {
       test(
           'should NOT add an army if the player has not enough reinforcement armies', () {
         // GIVEN
-        var event = {
-          "event": "ArmyPlaced",
-          "data": {
-            "playerId": 2,
-            "country": "western_australia"
-          },
-        };
+        var event = new ArmyPlaced(2, "western_australia");
 
         // WHEN
         eventHandler.handle(event);
