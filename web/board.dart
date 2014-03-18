@@ -15,18 +15,12 @@ class RiskBoard extends PolymerElement {
   @observable
   var svgPaths;
 
-  @observable
-  String selection;
-
   RiskBoard.created(): super.created() {
     HttpRequest.getString('svg-datas.json').then(JSON.decode).then((e) =>
         svgPaths = e);
   }
 
-  countryClick(Event e, var detail, Element target) => target.classes.toggle(
-      'selected');
-
-  countryEnter(Event e, var detail, Element target) => selection = target.id;
-
-  countryLeave(Event e, var detail, Element target) => selection = '';
+  countryClick(Event e, var detail, Element target) {
+    target.classes.toggle('selected');
+  }
 }
