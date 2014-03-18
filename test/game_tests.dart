@@ -18,7 +18,7 @@ main() {
     group('on ArmyPlaced', () {
       test('should add an army on a neutral country', () {
         // GIVEN
-        var event = new ArmyPlaced(0, "eastern_australia");
+        var event = new ArmyPlaced(playerId: 0, country: "eastern_australia");
 
         // WHEN
         eventHandler.handle(event);
@@ -33,7 +33,7 @@ main() {
 
       test('should add an army on country owned by the player', () {
         // GIVEN
-        var event = new ArmyPlaced(1, "western_australia");
+        var event = new ArmyPlaced(playerId: 1, country: "western_australia");
 
         // WHEN
         eventHandler.handle(event);
@@ -48,7 +48,7 @@ main() {
 
       test('should NOT add an army on country owned by another player', () {
         // GIVEN
-        var event = new ArmyPlaced(0, "western_australia");
+        var event = new ArmyPlaced(playerId: 0, country: "western_australia");
 
         // WHEN
         eventHandler.handle(event);
@@ -62,7 +62,7 @@ main() {
       test(
           'should NOT add an army if the player has not enough reinforcement armies', () {
         // GIVEN
-        var event = new ArmyPlaced(2, "western_australia");
+        var event = new ArmyPlaced(playerId: 2, country: "western_australia");
 
         // WHEN
         eventHandler.handle(event);

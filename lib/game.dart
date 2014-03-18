@@ -25,18 +25,17 @@ class PlayerState {
   PlayerState(this.name, this.avatar, {this.reinforcement: 0});
 }
 
-typedef EventHandler(Event event);
+typedef EventHandler(event);
 
 class RiskGameEngine {
   final RiskGame game;
   RiskGameEngine(this.game);
 
-  Event handle(Event event) {
-    switch (event.runtimeType) {
-      case ArmyPlaced:
-        return armyPlaced(event);
-      default:
-        return null;
+  handle(event) {
+    if (event is ArmyPlaced) {
+      return armyPlaced(event);
+    } else {
+      return null;
     }
   }
 

@@ -1,40 +1,52 @@
 library risk.event;
 
-abstract class Event {
-  factory Event.fromMap(Map map) {
-    var data = map['data'];
-    switch (map['event']) {
-      case "ArmyPlaced":
-        return new ArmyPlaced._fromData(data);
-      default:
-        return null;
-    }
-  }
-  
-  Event();
-  
-  String get _event => this.runtimeType.toString();
-  Map get _data;
-  
-  Map toMap() => {
-    "event": _event,
-    "data": _data,
-  };
-}
+@MirrorsUsed(override: '*')
+import 'dart:mirrors';
+import 'dart:convert';
+import 'package:morph/morph.dart';
 
-abstract class PlayerEvent extends Event {
+abstract class PlayerEvent {
   int get playerId;
 }
 
-class ArmyPlaced extends PlayerEvent {
-  final int playerId;
-  final String country;
-  ArmyPlaced(this.playerId, this.country);
+class ArmyPlaced implements PlayerEvent {
+  int playerId;
+  String country;
+  ArmyPlaced({this.playerId, this.country});
+}
 
-  ArmyPlaced._fromData(Map data)
-      : this(data['playerId'], data['country']);
-  Map get _data => {
-    'playerId': playerId,
-    'country': country,
+/**
+ * Encodes and decodes Event from/to JSON.
+ */
+class EventCodec extends Codec<Object, Map> {
+  final decoder = new EventDecoder();
+  final encoder = new EventEncoder();
+}
+
+/**
+ * Decodes Event from JSON.
+ */
+class EventDecoder extends Converter<Map, Object> {
+  final _morph = new Morph();
+  final _classes = const {
+    "ArmyPlaced": ArmyPlaced
+  };
+
+  Object convert(Map input) {
+    var event = input == null ? null : input['event'];
+    var type = _classes[event];
+    return type == null ? null : _morph.deserialize(type, input['data']);
+  }
+}
+
+/**
+ * Encodes Event to JSON.
+ */
+class EventEncoder extends Converter<Object, Map> {
+  final _morph = new Morph();
+
+  Map convert(Object input) => {
+    'event': '${input.runtimeType}',
+    'data': _morph.serialize(input)
   };
 }
