@@ -23,12 +23,14 @@
       
       <g id="countries">
         <template repeat="{{ country in countries }}">
-          <path id="path-{{ country.id }}" class="country" d="{{ svgPaths[country.id] }}" 
+          <path id="path-{{ country.id }}" class="country" d="{{ svgPaths[country.id]['path'] }}" 
             on-click="{{ countryClick }}">
           </path>
         </template>
         <template repeat="{{ country in countries }}">
-          <text id="text-{{ country.id }}" text-anchor="middle" font-size="8" transform="translate({{ svgPaths[country.id] | center }})">{{ country.id }}</text>
+          <text id="text-{{ country.id }}" text-anchor="middle" font-size="8"
+                x="{{ svgPaths[country.id]['center']['x'] }}"
+                y="{{ svgPaths[country.id]['center']['y'] }}">{{ country.id }}</text>
         </template>
       </g>
     </svg>
