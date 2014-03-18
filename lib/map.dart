@@ -79,7 +79,7 @@ final COUNTRIES = <Country>[//
   new Country._('northwest_territory', 'north_america', //
   ['alaska', 'ontario', 'greenland', 'alberta']), //
   new Country._('ontario', 'north_america', //
-  ['ontario', 'northwest_territory', 'greenland', 'eastern_united_states',
+  ['northwest_territory', 'greenland', 'eastern_united_states',
       'western_united_states', 'quebec', 'alberta']), //
   new Country._('quebec', 'north_america', //
   ['greenland', 'ontario', 'eastern_united_states']), //
