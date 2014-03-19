@@ -1,6 +1,5 @@
 library risk.event.test;
 
-import 'dart:convert';
 import 'package:collection/equality.dart';
 import 'package:unittest/unittest.dart';
 import 'package:risk/event.dart';
@@ -26,12 +25,10 @@ main() {
   });
 }
 
-final Codec<Object, Map> eventCodec = new EventCodec();
-
 testSerialization(event, json) {
   test('serializable', () {
     // WHEN
-    var output = eventCodec.encode(event);
+    var output = EVENT.encode(event);
 
     // THEN
     expect(const DeepCollectionEquality().equals(json, output), isTrue);
@@ -41,7 +38,7 @@ testSerialization(event, json) {
 testDeserialization(event, json, expectation(output)) {
   test('deserializable', () {
     // WHEN
-    var output = eventCodec.decode(json);
+    var output = EVENT.decode(json);
 
     // THEN
     expectation(output);

@@ -15,27 +15,31 @@ class ArmyPlaced implements PlayerEvent {
   ArmyPlaced({this.playerId, this.country});
 }
 
+const EVENT = const EventCodec();
+final _MORPH = new Morph();
+
 /**
  * Encodes and decodes Event from/to JSON.
  */
 class EventCodec extends Codec<Object, Map> {
-  final decoder = new EventDecoder();
-  final encoder = new EventEncoder();
+  final decoder = const EventDecoder();
+  final encoder = const EventEncoder();
+  const EventCodec();
 }
 
 /**
  * Decodes Event from JSON.
  */
 class EventDecoder extends Converter<Map, Object> {
-  final _morph = new Morph();
   final _classes = const {
     "ArmyPlaced": ArmyPlaced
   };
 
+  const EventDecoder();
   Object convert(Map input) {
     var event = input == null ? null : input['event'];
     var type = _classes[event];
-    return type == null ? null : _morph.deserialize(type, input['data']);
+    return type == null ? null : _MORPH.deserialize(type, input['data']);
   }
 }
 
@@ -43,10 +47,9 @@ class EventDecoder extends Converter<Map, Object> {
  * Encodes Event to JSON.
  */
 class EventEncoder extends Converter<Object, Map> {
-  final _morph = new Morph();
-
+  const EventEncoder();
   Map convert(Object input) => {
     'event': '${input.runtimeType}',
-    'data': _morph.serialize(input)
+    'data': _MORPH.serialize(input)
   };
 }
