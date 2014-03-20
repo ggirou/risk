@@ -5,13 +5,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http_server/http_server.dart' show VirtualDirectory;
 import 'package:risk/event.dart';
+import 'package:risk/game.dart';
 
 final int port = 8080;
 
 final List<PlayerEvent> _eventsHistory = [];
 final Map<int, StreamController<PlayerEvent>> _clients = {};
-// TODO list of players in the game
-//final Map<int, Player> players = []
 
 VirtualDirectory vDir;
 
@@ -40,6 +39,12 @@ void directoryHandler(dir, request) {
   vDir.serveFile(new File(indexUri.toFilePath()), request);
 }
 
+typedef bool validEvent(PlayerEvent event);
+Map<PlayerEvent, validEvent> _handlers = {
+                                          JoinGame : handleJoinGame,
+                                          LeaveGame : handleLeaveGame
+                                          };
+
 void handleWebSocket(WebSocket ws) {
   print("Player connected");
   final playerId = generatePlayerId();
@@ -47,7 +52,7 @@ void handleWebSocket(WebSocket ws) {
   ws.map(JSON.decode).map(EVENT.decode)
     .where((event) => event != null && event.playerId == playerId) // Avoid unknown event and cheater 
     .listen(handleEvents)
-    .onDone(() => disconnectPlayer(playerId)); // Connection is lost
+    .onDone(() => connectionLost(playerId)); // Connection is lost
 }
 
 int generatePlayerId() => new DateTime.now().millisecondsSinceEpoch;
@@ -60,11 +65,10 @@ void connectPlayer(int playerId, WebSocket ws){
   
   controler.add(new Welcome(playerId: playerId));
   // broadcast all events history to player
-  _eventsHistory.forEach(controler.add);
-  // TODO sent welcome to every body ?  
+  _eventsHistory.forEach(controler.add); 
 }
 
-void disconnectPlayer(int playerId) {
+void connectionLost(int playerId) {
   print("Connexion is lost");
   if(_clients.containsKey(playerId)){
     _clients[playerId].close();
@@ -75,20 +79,10 @@ void disconnectPlayer(int playerId) {
 
 void handleEvents(PlayerEvent event) {
   print("receive even=$event");
-  // TODO event should be save after check validity
   _eventsHistory.add(event);
-  // TODO dispatch event to all clients
-  // TODO use map <event, handle> instead of switch and handleXXX(event) answer true if event is valid 
-  switch (event.runtimeType) {
-    case JoinGame:
-      handleJoin(event);
-      break;
-    case LeaveGame:
-      handlePlayerLeft(event);
-      break;
+  if(_handlers[event.runtimeType](event)){
+    dispatchEventToAllPlayers(event);
   }
-  // TODO broacast to all if valid
-  dispatchEventToAllPlayers(event);
 }
 
 void dispatchEventToAllPlayers(PlayerEvent event) {
@@ -96,18 +90,16 @@ void dispatchEventToAllPlayers(PlayerEvent event) {
   _clients.values.forEach((controler) => controler.add(event));
 }
 
-void handleJoin(JoinGame event) {
+bool handleJoinGame(JoinGame event) {
   print("Player ${event.playerId} is ready");  
   // TODO add to players
-  // _players[event.playerId] = new Player();
+  return true;
 }
 
-void handlePlayerLeft(LeaveGame event) {
+bool handleLeaveGame(LeaveGame event) {
   print("Player ${event.playerId} is leaving");
-  if(_clients.containsKey(event.playerId)){
-    _clients[event.playerId].close();
-    _clients.remove(event.playerId);
-    // TODO add to players
-    //_players.remove(event.playerId);
-  }
+  _clients[event.playerId].close();
+  _clients.remove(event.playerId);
+  // TODO remove from players
+  return true;
 }
