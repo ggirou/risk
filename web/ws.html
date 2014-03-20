@@ -4,24 +4,29 @@
   <head>
   	<meta charset="utf-8">
   	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ws</title>
+    <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
+    <title>WebSocket Test Page</title>
   </head>
  
   <body>   
-    <h3>WS connection test page</h3>
-    <textarea id="eventInput" style="width: 100%; height: 250px;">
+    <section class="container-fluid">
+      <h3>WebSocket Test Page</h3>
+      <textarea id="eventInput" class="form-control" rows="10">
 {
-  "event": "PlayerJoined",
+  "event": "JoinGame",
   "data": {
     "playerId": 1,
     "name": "John Lennon",
     "avatar": "kadhafi.png"
   }
 }
-    </textarea>
-    <input id="sendButton" type="button" value="Send">
-    
-    <ul id="logs"></ul>
+      </textarea>
+      <br>
+      <input id="sendButton" type="button" value="Send" class="btn btn-default">
+      
+      <ul id="logs"></ul>
+    </section>
     
     <script type="application/dart" src="ws.dart"></script>
     <!-- for this next line to work, your pubspec.yaml file must have a dependency on 'browser' -->

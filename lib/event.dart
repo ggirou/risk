@@ -51,8 +51,8 @@ class EventCodec extends Codec<Object, Map> {
 class EventDecoder extends Converter<Map, Object> {
   final _classes = const {
     "Welcome": Welcome,
-    "PlayerJoined": JoinGame,
-    "PlayerLeft": LeaveGame,
+    "JoinGame": JoinGame,
+    "LeaveGame": LeaveGame,
     "ArmyPlaced": ArmyPlaced,
   };
 
