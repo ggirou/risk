@@ -8,7 +8,21 @@
   </head>
  
   <body>   
-    WS connection test page
+    <h3>WS connection test page</h3>
+    <textarea id="eventInput" style="width: 100%; height: 250px;">
+{
+  "event": "PlayerJoined",
+  "data": {
+    "playerId": 1,
+    "name": "John Lennon",
+    "avatar": "kadhafi.png"
+  }
+}
+    </textarea>
+    <input id="sendButton" type="button" value="Send">
+    
+    <ul id="logs"></ul>
+    
     <script type="application/dart" src="ws.dart"></script>
     <!-- for this next line to work, your pubspec.yaml file must have a dependency on 'browser' -->
     <script src="packages/browser/dart.js"></script>
