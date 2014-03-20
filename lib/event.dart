@@ -15,6 +15,24 @@ class ArmyPlaced implements PlayerEvent {
   ArmyPlaced({this.playerId, this.country});
 }
 
+// TODO create server event
+class Welcome implements PlayerEvent {
+  int playerId;
+  Welcome({this.playerId});  
+}
+
+class PlayerJoined implements PlayerEvent {
+  int playerId;
+  String name;
+  String avatar;
+  PlayerJoined({this.playerId, this.name, this.avatar});
+}
+
+class PlayerLeft implements PlayerEvent {
+  int playerId;
+  PlayerLeft({this.playerId});
+}
+
 const EVENT = const EventCodec();
 final _MORPH = new Morph();
 
