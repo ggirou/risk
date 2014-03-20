@@ -81,7 +81,7 @@ void handleEvents(PlayerEvent event) {
   // TODO use map <event, handle> instead of switch and handleXXX(event) answer true if event is valid 
   switch (event.runtimeType) {
     case JoinGame:
-      // TODO 
+      handleJoin(event);
       break;
     case LeaveGame:
       handlePlayerLeft(event);
