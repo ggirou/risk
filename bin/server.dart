@@ -43,7 +43,7 @@ void handleWebSocket(WebSocket ws) {
   final playerId = generatePlayerId();
   connectPlayer(playerId, ws);
   ws.map(JSON.decode).map(EVENT.decode)
-    .takeWhile((event) => event.playerId == playerId) // Avoid cheater 
+    .where((event) => event != null && event.playerId == playerId) // Avoid unknown event and cheater 
     .listen(handleEvents)
     .onDone(() => disconnectPlayer(playerId)); // Connection is lost
 }
