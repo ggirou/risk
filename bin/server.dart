@@ -68,7 +68,7 @@ void disconnectPlayer(int playerId) {
     _clients[playerId].close();
     _clients.remove(playerId);
   }
-  dispatchEventToAllPlayers(new PlayerLeft(playerId: playerId));
+  dispatchEventToAllPlayers(new LeaveGame(playerId: playerId));
 }
 
 void handleEvents(PlayerEvent event) {
@@ -78,13 +78,11 @@ void handleEvents(PlayerEvent event) {
   // TODO dispatch event to all clients
   // TODO use map <event, handle> instead of switch and handleXXX(event) answer true if event is valid 
   switch (event.runtimeType) {
-    case PlayerJoined:
+    case JoinGame:
       // TODO 
       break;
-    case PlayerLeft:
+    case LeaveGame:
       handlePlayerLeft(event);
-      break;
-    case ArmyPlaced:
       break;
   }
   // broacast to all
@@ -96,7 +94,13 @@ void dispatchEventToAllPlayers(PlayerEvent event) {
   _clients.values.forEach((controler) => controler.add(event));
 }
 
-void handlePlayerLeft(PlayerLeft event) {
+void handleJoin(JoinGame event) {
+  print("Player ${event.playerId} is ready");  
+  // TODO add to players
+  // _players[event.playerId] = new Player();
+}
+
+void handlePlayerLeft(LeaveGame event) {
   print("Player ${event.playerId} is leaving");
   if(_clients.containsKey(event.playerId)){
     _clients[event.playerId].close();

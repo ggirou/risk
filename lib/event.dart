@@ -21,16 +21,16 @@ class Welcome implements PlayerEvent {
   Welcome({this.playerId});  
 }
 
-class PlayerJoined implements PlayerEvent {
+class JoinGame implements PlayerEvent {
   int playerId;
   String name;
   String avatar;
-  PlayerJoined({this.playerId, this.name, this.avatar});
+  JoinGame({this.playerId, this.name, this.avatar});
 }
 
-class PlayerLeft implements PlayerEvent {
+class LeaveGame implements PlayerEvent {
   int playerId;
-  PlayerLeft({this.playerId});
+  LeaveGame({this.playerId});
 }
 
 const EVENT = const EventCodec();
