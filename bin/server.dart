@@ -30,7 +30,7 @@ main() {
         }
       });
     });
-  }, onError: (Error e) => print("An error occurred $e: ${e.stackTrace}"));
+  }, onError: (Error e) => print("An error occurred $e"));
 }
 
 void directoryHandler(dir, request) {
@@ -55,8 +55,8 @@ void connectPlayer(int playerId, WebSocket ws){
   _clients[playerId] = controler;
   final eventStream = controler.stream.map(EVENT.encode).map(JSON.encode);
   ws.addStream(eventStream);
-  //controler.add(new Welcome(playerId: playerId));
-  controler.add("{'playerId':$playerId}");
+  
+  controler.add(new Welcome(playerId: playerId));
   // broadcast all events history to player
   _eventsHistory.forEach(controler.add);
   // TODO sent welcome to every body ?  
@@ -64,8 +64,11 @@ void connectPlayer(int playerId, WebSocket ws){
 
 void disconnectPlayer(int playerId) {
   print("Connexion is lost");
-  handlePlayerLeft(new PlayerLeft(playerId: playerId));
-  _clients.remove(playerId);
+  if(_clients.containsKey(playerId)){
+    _clients[playerId].close();
+    _clients.remove(playerId);
+  }
+  dispatchEventToAllPlayers(new PlayerLeft(playerId: playerId));
 }
 
 void handleEvents(PlayerEvent event) {
@@ -84,12 +87,17 @@ void handleEvents(PlayerEvent event) {
     case ArmyPlaced:
       break;
   }
+  // broacast to all
+
 }
 
-void dispatchEventToAllPlayers(PlayerEvent event) =>
+void dispatchEventToAllPlayers(PlayerEvent event) {
+  print("Send event $event to all");
   _clients.values.forEach((controler) => controler.add(event));
+}
 
 void handlePlayerLeft(PlayerLeft event) {
+  print("Player ${event.playerId} is leaving");
   if(_clients.containsKey(event.playerId)){
     _clients[event.playerId].close();
     _clients.remove(event.playerId);
