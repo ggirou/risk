@@ -10,6 +10,8 @@ final int port = 8080;
 
 final List<PlayerEvent> _eventsHistory = [];
 final Map<int, StreamController<PlayerEvent>> _clients = {};
+// TODO list of players in the game
+//final Map<int, Player> players = []
 
 VirtualDirectory vDir;
 
@@ -85,8 +87,8 @@ void handleEvents(PlayerEvent event) {
       handlePlayerLeft(event);
       break;
   }
-  // broacast to all
-
+  // TODO broacast to all if valid
+  dispatchEventToAllPlayers(event);
 }
 
 void dispatchEventToAllPlayers(PlayerEvent event) {
@@ -105,5 +107,7 @@ void handlePlayerLeft(LeaveGame event) {
   if(_clients.containsKey(event.playerId)){
     _clients[event.playerId].close();
     _clients.remove(event.playerId);
+    // TODO add to players
+    //_players.remove(event.playerId);
   }
 }
