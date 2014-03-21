@@ -15,6 +15,24 @@ class ArmyPlaced implements PlayerEvent {
   ArmyPlaced({this.playerId, this.country});
 }
 
+// TODO create server event
+class Welcome implements PlayerEvent {
+  int playerId;
+  Welcome({this.playerId});  
+}
+
+class JoinGame implements PlayerEvent {
+  int playerId;
+  String name;
+  String avatar;
+  JoinGame({this.playerId, this.name, this.avatar});
+}
+
+class LeaveGame implements PlayerEvent {
+  int playerId;
+  LeaveGame({this.playerId});
+}
+
 const EVENT = const EventCodec();
 final _MORPH = new Morph();
 
@@ -32,7 +50,10 @@ class EventCodec extends Codec<Object, Map> {
  */
 class EventDecoder extends Converter<Map, Object> {
   final _classes = const {
-    "ArmyPlaced": ArmyPlaced
+    "Welcome": Welcome,
+    "JoinGame": JoinGame,
+    "LeaveGame": LeaveGame,
+    "ArmyPlaced": ArmyPlaced,
   };
 
   const EventDecoder();
