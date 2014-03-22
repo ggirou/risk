@@ -8,11 +8,11 @@
         stroke-width: 1;
       }
       
-      .selected .country {
+      .selected .shape {
         fill: red;
       }
 
-      .country:hover {
+      .country:hover .shape{
         stroke-width: 2;
       }
 
@@ -34,8 +34,8 @@
       
       <g id="countries">
         <template repeat="{{ country in countries }}">
-          <g on-click="{{ countryClick }}">
-            <path id="path-{{ country.id }}" class="country" d="{{ svgPaths[country.id]['path'] }}" 
+          <g on-click="{{ countryClick }}" class="country">
+            <path id="path-{{ country.id }}" class="shape" d="{{ svgPaths[country.id]['path'] }}"
               fill="{{ game.countries[country.id].playerId | color }}">
             </path>
             <g transform="translate({{ svgPaths[country.id]['center']['x'] }},{{ svgPaths[country.id]['center']['y'] }})">
