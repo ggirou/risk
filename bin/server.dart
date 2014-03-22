@@ -79,7 +79,7 @@ void connectionLost(int playerId) {
 void handleEvents(PlayerEvent event) {
   print("receive even=$event");
   _eventsHistory.add(event);
-  if(_handlers[event.runtimeType](event)){
+  if(_handlers.containsKey(event.runtimeType) && _handlers[event.runtimeType](event)){
     dispatchEventToAllPlayers(event);
   }
 }
