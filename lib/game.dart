@@ -4,6 +4,7 @@ import 'event.dart';
 
 class RiskGame {
   final Map<String, CountryState> countries;
+  // FIXME Change to map?
   final List<PlayerState> players;
   int currentPlayerId;
 

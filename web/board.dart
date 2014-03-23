@@ -16,7 +16,7 @@ final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
 class RiskBoard extends PolymerElement {
   final List<Country> countries = COUNTRIES;
 
-  final game = new RiskGame(countries: FAKE_COUNTRY_STATES);
+  @published RiskGame game = new RiskGame(countries:FAKE_COUNTRY_STATES);
 
   @observable
   var svgPaths;
