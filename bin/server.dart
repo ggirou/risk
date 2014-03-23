@@ -41,7 +41,6 @@ void directoryHandler(dir, request) {
 
 class RiskWsServer {
   final Map<int, WebSocket> _clients = {};
-  final Game game = new Game();
   final RiskGameEngine game = new RiskGameEngine();
   final List _eventsHistory = [];
 

@@ -78,10 +78,17 @@ typedef EventHandler(event);
 
 class RiskGameEngine {
   final RiskGame game;
-  RiskGameEngine(this.game);
+  RiskGameEngine.from(this.game);
+  RiskGameEngine(): this.from(new RiskGame());
 
   handle(event) {
-    if (event is ArmyPlaced) {
+    if (event is JoinGame) {
+      // TODO: update state
+      return event;
+    } else if (event is LeaveGame) {
+      // TODO: update state
+      return event;
+    } else if (event is ArmyPlaced) {
       return armyPlaced(event);
     } else {
       return null;
