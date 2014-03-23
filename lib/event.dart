@@ -15,8 +15,7 @@ class ArmyPlaced implements PlayerEvent {
   ArmyPlaced({this.playerId, this.country});
 }
 
-// TODO create server event
-class Welcome implements PlayerEvent {
+class Welcome {
   int playerId;
   Welcome({this.playerId});  
 }
