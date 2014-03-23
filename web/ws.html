@@ -12,6 +12,11 @@
   <body>   
     <section class="container-fluid">
       <h3>WebSocket Test Page</h3>
+      <select id="eventTemplate">
+        <option></option>
+      </select>
+
+      <br>
       <textarea id="eventInput" class="form-control" rows="10">
 {
   "event": "JoinGame",
@@ -22,6 +27,7 @@
   }
 }
       </textarea>
+
       <br>
       <input id="sendButton" type="button" value="Send" class="btn btn-default">
       
