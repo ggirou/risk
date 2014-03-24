@@ -16,7 +16,8 @@ final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
 class RiskBoard extends PolymerElement {
   final List<Country> countries = COUNTRIES;
 
-  @published RiskGame game = new RiskGame(countries:FAKE_COUNTRY_STATES);
+  @published
+  RiskGame game = new RiskGame(countries: FAKE_COUNTRY_STATES);
 
   @observable
   var svgPaths;
@@ -30,7 +31,11 @@ class RiskBoard extends PolymerElement {
     target.classes.toggle('selected');
   }
 
-  String color(int playerId) => COLORS[playerId % COLORS.length];
+  String color(Country country) {
+    final cs = game.countries[country.id];
+    return cs == null || cs.playerId == null ? "white" : COLORS[cs.playerId %
+        COLORS.length];
+  }
 }
 
 final FAKE_COUNTRY_STATES = {

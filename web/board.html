@@ -36,16 +36,16 @@
         <template repeat="{{ country in countries }}">
           <g on-click="{{ countryClick }}" class="country">
             <path id="path-{{ country.id }}" class="shape" d="{{ svgPaths[country.id]['path'] }}"
-              fill="{{ game.countries[country.id].playerId | color }}">
+              fill="{{ color(country) }}">
             </path>
-            <g transform="translate({{ svgPaths[country.id]['center']['x'] }},{{ svgPaths[country.id]['center']['y'] }})">
-              <!--text text-anchor="middle" font-size="8"
-                    x="0" y="14">{{ country.id }}</text-->
-              <!-- armies -->
-              <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
-              <text text-anchor="middle" font-size="10"
-                    x="0" y="3">{{ game.countries[country.id].armies }}</text>
-            </g>
+            <!-- armies -->
+            <template if="{{ game.countries[country.id] != null }}">
+              <g transform="translate({{ svgPaths[country.id]['center']['x'] }},{{ svgPaths[country.id]['center']['y'] }})">
+                <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
+                <text text-anchor="middle" font-size="10"
+                      x="0" y="3">{{ game.countries[country.id].armies }}</text>
+              </g>
+            </template>
           </g>
         </template>
       </g>
