@@ -8,13 +8,15 @@ import 'package:polymer/polymer.dart';
 import 'package:risk/game.dart';
 import 'package:risk/map.dart';
 
-final COLORS = ['yellow', 'blue', 'green', 'brown', 'purple'];
+// grabbed on http://i.stack.imgur.com/VewLV.png (http://gamedev.stackexchange.com/questions/46463/is-there-an-optimum-set-of-colors-for-10-players)
+final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
+    '#F2A279', '#7182E3', '#92D169', '#BF607C', '#7CDDF7'];
 
 @CustomTag('risk-board')
 class RiskBoard extends PolymerElement {
   final List<Country> countries = COUNTRIES;
 
-  final game = new RiskGame(countries:FAKE_COUNTRY_STATES);
+  final game = new RiskGame(countries: FAKE_COUNTRY_STATES);
 
   @observable
   var svgPaths;
