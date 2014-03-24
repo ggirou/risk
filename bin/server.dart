@@ -71,8 +71,7 @@ void connectPlayer(int playerId, WebSocket ws){
 void connectionLost(int playerId) {
   print("Connexion is lost");
   if(_clients.containsKey(playerId)){
-    _clients[playerId].close();
-    _clients.remove(playerId);
+    _clients.remove(playerId).close();
   }
   dispatchEventToAllPlayers(new LeaveGame(playerId: playerId));
 }
