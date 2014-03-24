@@ -50,7 +50,7 @@ void handleWebSocket(WebSocket ws) {
   final playerId = generatePlayerId();
   connectPlayer(playerId, ws);
   ws.map(JSON.decode).map(EVENT.decode)
-    .where((event) => event != null && event.playerId == playerId) // Avoid unknown event and cheater 
+    .where((event) => event != null && event.playerId == playerId) // Avoid unknown event and cheater
     .listen(handleEvents)
     .onDone(() => connectionLost(playerId)); // Connection is lost
 }
@@ -62,10 +62,10 @@ void connectPlayer(int playerId, WebSocket ws){
   _clients[playerId] = controler;
   final eventStream = controler.stream.map(EVENT.encode).map(JSON.encode);
   ws.addStream(eventStream);
-  
+
   controler.add(new Welcome(playerId: playerId));
   // broadcast all events history to player
-  _eventsHistory.forEach(controler.add); 
+  _eventsHistory.forEach(controler.add);
 }
 
 void connectionLost(int playerId) {
@@ -91,7 +91,7 @@ void dispatchEventToAllPlayers(PlayerEvent event) {
 }
 
 bool handleJoinGame(JoinGame event) {
-  print("Player ${event.playerId} is ready");  
+  print("Player ${event.playerId} is ready");
   // TODO add to players
   return true;
 }
