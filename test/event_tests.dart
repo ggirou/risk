@@ -5,7 +5,7 @@ import 'package:risk/event.dart';
 
 var events = {
   "Welcome": new SerializableTest()
-      ..event = new Welcome(playerId: 123)
+      ..event = (new Welcome()..playerId = 123)
       ..json = {
         "event": "Welcome",
         "data": {
@@ -17,8 +17,10 @@ var events = {
       },
 
   "JoinGame": new SerializableTest()
-      ..event = new JoinGame(playerId: 123, name: "John Lennon", avatar:
-          "kadhafi.png")
+      ..event = (new JoinGame()
+          ..playerId = 123
+          ..name = "John Lennon"
+          ..avatar = "kadhafi.png")
       ..json = {
         "event": "JoinGame",
         "data": {
@@ -34,7 +36,7 @@ var events = {
       },
 
   "LeaveGame": new SerializableTest()
-      ..event = new LeaveGame(playerId: 123)
+      ..event = (new LeaveGame()..playerId = 123)
       ..json = {
         "event": "LeaveGame",
         "data": {
@@ -46,7 +48,9 @@ var events = {
       },
 
   "ArmyPlaced": new SerializableTest()
-      ..event = new ArmyPlaced(playerId: 123, country: "eastern_australia")
+      ..event = (new ArmyPlaced()
+          ..playerId = 123
+          ..country = "eastern_australia")
       ..json = {
         "event": "ArmyPlaced",
         "data": {
@@ -63,6 +67,51 @@ var events = {
 
 main() {
   events.forEach((name, test) => group('$name should be', test.run));
+
+  group('dices matching', () {
+    test('[1,2] vs [1]', () {
+      final e = new BattleEnded()
+          ..attackDices = [1, 2]
+          ..defendDices = [1];
+      expect(e.lostByAttacker, equals(0));
+      expect(e.lostByDefender, equals(1));
+    });
+    test('[1,1] vs [1]', () {
+      final e = new BattleEnded()
+      ..attackDices = [1, 1]
+      ..defendDices = [1];
+      expect(e.lostByAttacker, equals(1));
+      expect(e.lostByDefender, equals(0));
+    });
+    test('[1,1,1] vs [1]', () {
+      final e = new BattleEnded()
+      ..attackDices = [1, 1, 1]
+      ..defendDices = [1];
+      expect(e.lostByAttacker, equals(1));
+      expect(e.lostByDefender, equals(0));
+    });
+    test('[2,2,1] vs [2,1]', () {
+      final e = new BattleEnded()
+      ..attackDices = [2,2,1]
+      ..defendDices = [2,1];
+      expect(e.lostByAttacker, equals(1));
+      expect(e.lostByDefender, equals(1));
+    });
+    test('[2,2,1] vs [1,1]', () {
+      final e = new BattleEnded()
+      ..attackDices = [2,2,1]
+      ..defendDices = [1,1];
+      expect(e.lostByAttacker, equals(0));
+      expect(e.lostByDefender, equals(2));
+    });
+    test('[2,2,1] vs [3,4]', () {
+      final e = new BattleEnded()
+      ..attackDices = [2,2,1]
+      ..defendDices = [3,4];
+      expect(e.lostByAttacker, equals(2));
+      expect(e.lostByDefender, equals(0));
+    });
+  });
 }
 
 class SerializableTest {

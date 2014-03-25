@@ -18,7 +18,9 @@ main() {
     group('on ArmyPlaced', () {
       test('should add an army on a neutral country', () {
         // GIVEN
-        var event = new ArmyPlaced(playerId: 0, country: "eastern_australia");
+        var event = new ArmyPlaced()
+            ..playerId = 0
+            ..country = "eastern_australia";
 
         // WHEN
         eventHandler.handle(event);
@@ -33,7 +35,9 @@ main() {
 
       test('should add an army on country owned by the player', () {
         // GIVEN
-        var event = new ArmyPlaced(playerId: 1, country: "western_australia");
+        var event = new ArmyPlaced()
+            ..playerId = 1
+            ..country = "western_australia";
 
         // WHEN
         eventHandler.handle(event);
@@ -48,7 +52,9 @@ main() {
 
       test('should NOT add an army on country owned by another player', () {
         // GIVEN
-        var event = new ArmyPlaced(playerId: 0, country: "western_australia");
+        var event = new ArmyPlaced()
+            ..playerId = 0
+            ..country = "western_australia";
 
         // WHEN
         eventHandler.handle(event);
@@ -62,7 +68,9 @@ main() {
       test(
           'should NOT add an army if the player has not enough reinforcement armies', () {
         // GIVEN
-        var event = new ArmyPlaced(playerId: 2, country: "western_australia");
+        var event = new ArmyPlaced()
+            ..playerId = 2
+            ..country = "western_australia";
 
         // WHEN
         eventHandler.handle(event);
@@ -76,25 +84,30 @@ main() {
   });
 }
 
-riskGame() => new RiskGame(countries: {
-  "western_australia": new CountryState(1, 1),
-}, players: [playerState(reinforcement: 10), playerState(reinforcement: 1),
-    playerState(reinforcement: 0)]);
+riskGame() => new RiskGame()
+    ..countries = {
+      "western_australia": new CountryState(1, 1),
+    }
+    ..players = {
+      0: playerState(reinforcement: 10),
+      1: playerState(reinforcement: 1),
+      2: playerState(reinforcement: 0),
+    };
 
 playerState({name: "John", avatar: "avatar.png", reinforcement: 0}) =>
     new PlayerState(name, avatar, reinforcement: reinforcement);
 
 class RiskGameEquality implements Equality<RiskGame> {
   final _countryEq = const MapEquality(values: const CountryStateEquality());
-  final _playerEq = const ListEquality(const PlayerStateEquality());
+  final _playerEq = const MapEquality(values: const PlayerStateEquality());
 
   const RiskGameEquality();
 
   bool equals(RiskGame e1, RiskGame e2) => _countryEq.equals(e1.countries,
-      e2.countries) && _playerEq.equals(e1.players, e2.players) && e1.currentPlayerId
-      == e2.currentPlayerId;
+      e2.countries) && _playerEq.equals(e1.players, e2.players) && e1.activePlayerId
+      == e2.activePlayerId;
   int hash(RiskGame e) => _countryEq.hash(e.countries) ^ _playerEq.hash(
-      e.players) ^ e.currentPlayerId.hashCode;
+      e.players) ^ e.activePlayerId.hashCode;
   bool isValidKey(Object o) => o is RiskGame;
 }
 

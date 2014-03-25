@@ -17,7 +17,7 @@ class RiskBoard extends PolymerElement {
   final List<Country> countries = COUNTRIES;
 
   @published
-  RiskGame game = new RiskGame(countries: FAKE_COUNTRY_STATES);
+  RiskGame game = new RiskGame()..countries = FAKE_COUNTRY_STATES;
 
   @observable
   var svgPaths;

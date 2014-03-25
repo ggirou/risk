@@ -1,16 +1,68 @@
 library risk.game;
 
+import 'dart:async';
 import 'event.dart';
 
-class RiskGame {
-  final Map<String, CountryState> countries;
-  // FIXME Change to map?
-  final List<PlayerState> players;
-  int currentPlayerId;
+class RiskGame implements EventSink {
+  Map<String, CountryState> countries = {};
+  Map<int, PlayerState> players = {};
+  int activePlayerId;
 
-  RiskGame({countries: const {}, players: const []})
-      : countries = {}..addAll(countries),
-        players = []..addAll(players);
+  Attack _lastAttack;
+
+  RiskGame();
+
+  @override
+  void add(event) {
+    if (event is Welcome) {
+      // nothing
+    } else if (event is JoinGame) {
+      players.putIfAbsent(event.playerId, () => new PlayerState(event.name,
+          event.avatar, reinforcement: 0));
+    } else if (event is StartGame) {
+      // nothing
+    } else if (event is GameBeginning) {
+      // nothing
+    } else if (event is CountryChosen) {
+      countries.putIfAbsent(event.country, () => new CountryState(
+          event.playerId, 1));
+    } else if (event is ArmyPlaced) {
+      countries[event.country].armies++;
+    } else if (event is NextPlayer) {
+      activePlayerId = event.playerId;
+      players[event.playerId].reinforcement = event.reinforcement;
+    } else if (event is Attack) {
+      _lastAttack = event;
+    } else if (event is Defend) {
+      // nothing
+    } else if (event is BattleEnded) {
+      countries[_lastAttack.from].armies -= event.lostByAttacker;
+      final to = countries[_lastAttack.to];
+      to.armies -= event.lostByDefender;
+      if (to.armies == 0) {
+        to.playerId = _lastAttack.playerId;
+      }
+    } else if (event is BattleMove) {
+      countries[_lastAttack.from].armies -= event.armiesOnNewCountry;
+      countries[_lastAttack.to].armies += event.armiesOnNewCountry;
+      _lastAttack = null;
+    } else if (event is EndAttack) {
+      // nothing
+    } else if (event is Move) {
+      countries[event.from].armies -= event.armies;
+      countries[event.to].armies += event.armies;
+    } else if (event is EndTurn) {
+      // nothing
+    } else if (event is LeaveGame) {
+      // nothing
+    }
+  }
+
+  @override
+  void addError(errorEvent, [StackTrace stackTrace]) {}
+
+  @override
+  void close() {}
 }
 
 class CountryState {
