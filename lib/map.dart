@@ -11,6 +11,9 @@ class Continent {
 }
 
 class Country {
+  static Country findById(String id) => COUNTRIES.firstWhere((c) => c.id == id,
+      orElse: () => null);
+
   final String id;
   final String _continentId;
   final List<String> _neighbourIds;

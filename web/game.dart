@@ -13,10 +13,12 @@ class RiskGame extends PolymerElement {
   // Whether styles from the document apply to the contents of the component
   bool get applyAuthorStyles => true;
 
-  var gameEngine = new Game.RiskGameEngine(new Game.RiskGame(countries: toObservable({}), players: toObservable([])));
+  var gameEngine = new Game.RiskGameEngine(new Game.RiskGame()
+      ..countries = toObservable({})
+      ..players = toObservable({}));
 
   final WebSocket ws;
-  
+
   int playerId;
 
   RiskGame.created(): this.fromUri(_currentWebSocketUri());
@@ -25,29 +27,29 @@ class RiskGame extends PolymerElement {
       ));
 
   RiskGame.fromWebSocket(this.ws): super.created() {
-    var eventStream = ws.onMessage.map((e) => e.data)
-        .map(JSON.decode).map(_printEvent("IN"))
-        .map(EVENT.decode).listen(handleEvents);
+    var eventStream = ws.onMessage.map((e) => e.data).map(JSON.decode).map(
+        _printEvent("IN")).map(EVENT.decode).listen(handleEvents);
   }
 
   handleEvents(event) {
     gameEngine.handle(event);
-    
+
     if (event is Welcome) {
       playerId = event.playerId;
       // TODO Show enrollement popup
-    } /*else if(event is Attack) {
+    }
+        /*else if(event is Attack) {
       // TODO Show enrollement popup
     } */else {
       // TODO: Close all popup
     }
   }
 
-  sendEvent(event) => 
-    ws.send(JSON.encode(EVENT.encode(event)));
+  sendEvent(event) => ws.send(JSON.encode(EVENT.encode(event)));
 
-  onArmyPlaced(Event e, detail, target) => 
-    sendEvent(new ArmyPlaced(playerId: playerId, country: target));
+  onArmyPlaced(Event e, detail, target) => sendEvent(new ArmyPlaced()
+      ..playerId = playerId
+      ..country = target);
 }
 
 Uri _currentWebSocketUri() {

@@ -63,7 +63,7 @@ void connectPlayer(int playerId, WebSocket ws){
   final eventStream = controler.stream.map(EVENT.encode).map(JSON.encode);
   ws.addStream(eventStream);
 
-  controler.add(new Welcome(playerId: playerId));
+  controler.add(new Welcome()..playerId= playerId);
   // broadcast all events history to player
   _eventsHistory.forEach(controler.add);
 }
@@ -73,7 +73,7 @@ void connectionLost(int playerId) {
   if(_clients.containsKey(playerId)){
     _clients.remove(playerId).close();
   }
-  dispatchEventToAllPlayers(new LeaveGame(playerId: playerId));
+  dispatchEventToAllPlayers(new LeaveGame()..playerId = playerId);
 }
 
 void handleEvents(PlayerEvent event) {

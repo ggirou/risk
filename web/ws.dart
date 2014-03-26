@@ -4,11 +4,14 @@ import 'package:risk/game.dart';
 import 'package:risk/event.dart';
 
 final playerEvents = {
-  "JoinGame": (playerId) => new JoinGame(playerId: playerId, name:
-      "John Lennon", avatar: "kadhafi.png"),
-  "LeaveGame": (playerId) => new LeaveGame(playerId: playerId),
-  "ArmyPlaced": (playerId) => new ArmyPlaced(playerId: playerId, country:
-      "eastern_australia"),
+  "JoinGame": (playerId) => new JoinGame()
+    ..playerId = playerId
+    ..name = "John Lennon"
+    ..avatar = "kadhafi.png",
+  "LeaveGame": (playerId) => new LeaveGame()..playerId = playerId,
+  "ArmyPlaced": (playerId) => new ArmyPlaced()
+      ..playerId = playerId
+      ..country = "eastern_australia",
 };
 
 Element logs = querySelector("#logs");
