@@ -76,10 +76,23 @@ class PlayerState {
 
 typedef EventHandler(event);
 
-class RiskGameEngine {
+abstract class RiskGameEngine {
+
+  factory RiskGameEngine({RiskGame game}) {
+    if(game == null){
+      return new _RiskGameEngine();
+    } else {
+      return new _RiskGameEngine.from(game);
+    }
+  }
+
+  handle(event);
+}
+
+class _RiskGameEngine implements RiskGameEngine {
   final RiskGame game;
-  RiskGameEngine.from(this.game);
-  RiskGameEngine(): this.from(new RiskGame());
+  _RiskGameEngine.from(this.game);
+  _RiskGameEngine(): this.from(new RiskGame());
 
   handle(event) {
     if (event is JoinGame) {

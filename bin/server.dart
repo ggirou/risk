@@ -37,9 +37,13 @@ void directoryHandler(dir, request) {
   vDir.serveFile(new File(indexUri.toFilePath()), request);
 }
 
+abstract class RiskWsServer {
+  factory RiskWsServer() => new _RiskWsServer();
 
+  handleWebSocket(event);
+}
 
-class RiskWsServer {
+class _RiskWsServer implements RiskWsServer {
   final Map<int, WebSocket> _clients = {};
   final RiskGameEngine game = new RiskGameEngine();
   final List _eventsHistory = [];
@@ -50,19 +54,19 @@ class RiskWsServer {
   void handleWebSocket(WebSocket ws) {
     final playerId = currentPlayerId++;
     
-    _connectPlayer(playerId, ws);
+    connectPlayer(playerId, ws);
     
-    ws.map(JSON.decode).map(_logEvent("IN", playerId))
+    ws.map(JSON.decode).map(logEvent("IN", playerId))
       .map(EVENT.decode)
       .where((event) => event is PlayerEvent && event.playerId == playerId) // Avoid unknown event and cheater
       // TODO: should be transform(game.add) when game will implement Transformer issue #20
       .map(game.handle).where((e) => e != null) // Update game state and output new events
-      .map(_storeAndDispatch)
-      .listen(_handleEvents)
-      .onDone(() => _connectionLost(playerId)); // Connection is lost
+      .map(storeAndDispatch)
+      .listen(handleEvents)
+      .onDone(() => connectionLost(playerId)); // Connection is lost
   }
 
-  void _connectPlayer(int playerId, WebSocket ws) {
+  void connectPlayer(int playerId, WebSocket ws) {
     print("Player $playerId connected");
 
     _clients[playerId] = ws;
@@ -76,34 +80,34 @@ class RiskWsServer {
     stream.addStream(new Stream.fromIterable(_eventsHistory))
       .then((_) => stream.addStream(eventsBuffer.stream));
 
-    ws.addStream(stream.stream.map(EVENT.encode).map(_logEvent("OUT", playerId)).map(JSON.encode));
+    ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)).map(JSON.encode));
   }
 
-  _storeAndDispatch(event) {
+  storeAndDispatch(event) {
     _eventsHistory.add(event);
     _eventController.add(event);
     return event;
   }
 
-  _handleEvents(event) {
+  handleEvents(event) {
     if(event is LeaveGame) {
-      _handleLeaveGame(event);
+      handleLeaveGame(event);
     }
   }
   
-  _handleLeaveGame(LeaveGame event) {
+  handleLeaveGame(LeaveGame event) {
     print("Player ${event.playerId} is leaving");
-    _removePlayer(event.playerId);
+    removePlayer(event.playerId);
   }
 
-  _connectionLost(int playerId) {
+  connectionLost(int playerId) {
     print("Connection closed");
-    if(_removePlayer(playerId)) {
-      _storeAndDispatch(new LeaveGame()..playerId = playerId);
+    if(removePlayer(playerId)) {
+      storeAndDispatch(new LeaveGame()..playerId = playerId);
     }
   }
 
-  bool _removePlayer(int playerId) {
+  bool removePlayer(int playerId) {
     var client = _clients.remove(playerId);
     if (client != null) {
       client.close();
@@ -111,7 +115,7 @@ class RiskWsServer {
     return client != null;
   }
 
-  _logEvent(String direction, int playerId) => (event) {
+  logEvent(String direction, int playerId) => (event) {
     print("$direction[$playerId] - $event");
     return event;
   };
