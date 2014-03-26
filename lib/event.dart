@@ -9,48 +9,44 @@ abstract class PlayerEvent {
   int get playerId;
 }
 
-/// send by engine to identify player when he arrives
+/// sent by engine to identify player when he arrives
 class Welcome {
   int playerId;
 }
 
-/// send by player that is ready to join a game
+/// sent by player that is ready to join a game
 class JoinGame implements PlayerEvent {
   int playerId;
   String name;
   String avatar;
+  String color;
 }
 
-/// send by the first player to start a game
+/// sent by the first player to start a game
 class StartGame implements PlayerEvent {
   int playerId;
 }
 
-/// send by the engine when countries are affected
-class GameBeginning {
+/// sent by the engine when countries are affected
+class GameStarted {
   /// the number of armies by player
   int armies;
+  List<int> playersOrder;
 }
 
-/// send by player when he select a country at the start of game
-class CountryChosen implements PlayerEvent {
-  int playerId;
-  String country;
-}
-
-/// send by player when he put an army on a country
+/// sent by player when he put an army on a country
 class ArmyPlaced implements PlayerEvent {
   int playerId;
   String country;
 }
 
-/// send by the engine to change user
+/// sent by the engine to change user
 class NextPlayer {
   int playerId;
   int reinforcement;
 }
 
-/// send by player when he attacks a country
+/// sent by player when he attacks a country
 class Attack implements PlayerEvent {
   int playerId;
   String from;
@@ -58,13 +54,13 @@ class Attack implements PlayerEvent {
   int armies;
 }
 
-/// send by player when he defends a country
+/// sent by player when he defends a country
 class Defend implements PlayerEvent {
   int playerId;
   int armies;
 }
 
-/// send by engine the result of random
+/// sent by engine the result of random
 class BattleEnded {
   List<int> attackDices;
   List<int> defendDices;
@@ -81,18 +77,12 @@ class BattleEnded {
   int get lostByDefender => defendDices.length - lostByAttacker;
 }
 
-/// send by player to indicate the number of armies put on the new country
-class BattleMove implements PlayerEvent {
-  int playerId;
-  int armiesOnNewCountry;
-}
-
-/// send by player to stop attacking
+/// sent by player to stop attacking
 class EndAttack implements PlayerEvent {
   int playerId;
 }
 
-/// send by player to stop attacking
+/// sent by player to stop attacking
 class Move implements PlayerEvent {
   int playerId;
   String from;
@@ -100,12 +90,12 @@ class Move implements PlayerEvent {
   int armies;
 }
 
-/// send by player to end its turn
+/// sent by player to end its turn
 class EndTurn implements PlayerEvent {
   int playerId;
 }
 
-/// send by player to leave
+/// sent by player to leave
 class LeaveGame implements PlayerEvent {
   int playerId;
   LeaveGame();
@@ -131,14 +121,12 @@ class EventDecoder extends Converter<Map, Object> {
     "Welcome": Welcome,
     "JoinGame": JoinGame,
     "StartGame": StartGame,
-    "GameBeginning": GameBeginning,
-    "CountryChosen": CountryChosen,
+    "GameStarted": GameStarted,
     "ArmyPlaced": ArmyPlaced,
     "NextPlayer": NextPlayer,
     "Attack": Attack,
     "Defend": Defend,
     "BattleEnded": BattleEnded,
-    "BattleMove": BattleMove,
     "EndAttack": EndAttack,
     "Move": Move,
     "EndTurn": EndTurn,

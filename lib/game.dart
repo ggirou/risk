@@ -6,6 +6,7 @@ import 'event.dart';
 class RiskGame implements EventSink {
   Map<String, CountryState> countries = {};
   Map<int, PlayerState> players = {};
+  List<int> playersOrder;
   int activePlayerId;
 
   Attack _lastAttack;
@@ -21,13 +22,11 @@ class RiskGame implements EventSink {
           event.avatar, reinforcement: 0));
     } else if (event is StartGame) {
       // nothing
-    } else if (event is GameBeginning) {
-      // nothing
-    } else if (event is CountryChosen) {
-      countries.putIfAbsent(event.country, () => new CountryState(
-          event.playerId, 1));
+    } else if (event is GameStarted) {
+      playersOrder = event.playersOrder;
     } else if (event is ArmyPlaced) {
-      countries[event.country].armies++;
+      countries.putIfAbsent(event.country, () => new CountryState(
+          event.playerId, 0)).armies++;
     } else if (event is NextPlayer) {
       activePlayerId = event.playerId;
       players[event.playerId].reinforcement = event.reinforcement;
@@ -42,9 +41,6 @@ class RiskGame implements EventSink {
       if (to.armies == 0) {
         to.playerId = _lastAttack.playerId;
       }
-    } else if (event is BattleMove) {
-      countries[_lastAttack.from].armies -= event.armiesOnNewCountry;
-      countries[_lastAttack.to].armies += event.armiesOnNewCountry;
       _lastAttack = null;
     } else if (event is EndAttack) {
       // nothing
