@@ -78,7 +78,7 @@ typedef EventHandler(event);
 
 abstract class RiskGameEngine {
 
-  factory RiskGameEngine({RiskGame game}) {
+  factory RiskGameEngine([RiskGame game]) {
     if(game == null){
       return new _RiskGameEngine();
     } else {
@@ -87,6 +87,9 @@ abstract class RiskGameEngine {
   }
 
   handle(event);
+  
+  RiskGame get game;
+  
 }
 
 class _RiskGameEngine implements RiskGameEngine {

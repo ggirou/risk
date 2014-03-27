@@ -12,7 +12,7 @@ main() {
     RiskGameEngine eventHandler;
 
     setUp(() {
-      eventHandler = new RiskGameEngine.from(riskGame());
+      eventHandler = new RiskGameEngine(riskGame());
     });
 
     group('on ArmyPlaced', () {
