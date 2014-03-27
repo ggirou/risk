@@ -23,7 +23,7 @@ main() {
             ..country = "eastern_australia";
 
         // WHEN
-        eventHandler.handle(event);
+        var output = eventHandler.handle(event);
 
         // THEN
         var expected = riskGame();

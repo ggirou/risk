@@ -9,23 +9,21 @@ import 'package:risk/game.dart';
 
 final int port = 8080;
 
-final List<PlayerEvent> _eventsHistory = [];
-final Map<int, StreamController<PlayerEvent>> _clients = {};
-
 VirtualDirectory vDir;
 
 main() {
   runZoned(() {
     HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((server) {
       print("Risk is running on http://${server.address.address}:$port ");
-      vDir = new VirtualDirectory(Platform.script.resolve('../web').toFilePath())
+      vDir = new VirtualDirectory(Platform.script.resolve('../web').toFilePath()
+          )
           ..jailRoot = false
           ..allowDirectoryListing = true
           ..directoryHandler = directoryHandler;
-
+      final riskServer = new RiskWsServer();
       server.listen((HttpRequest req) {
         if (req.uri.path == '/ws') {
-          WebSocketTransformer.upgrade(req).then(handleWebSocket);
+          WebSocketTransformer.upgrade(req).then(riskServer.handleWebSocket);
         } else {
           vDir.serveRequest(req);
         }
@@ -39,66 +37,86 @@ void directoryHandler(dir, request) {
   vDir.serveFile(new File(indexUri.toFilePath()), request);
 }
 
-typedef bool validEvent(PlayerEvent event);
-Map<PlayerEvent, validEvent> _handlers = {
-                                          JoinGame : handleJoinGame,
-                                          LeaveGame : handleLeaveGame
-                                          };
+abstract class RiskWsServer {
+  factory RiskWsServer() => new _RiskWsServer();
 
-void handleWebSocket(WebSocket ws) {
-  print("Player connected");
-  final playerId = generatePlayerId();
-  connectPlayer(playerId, ws);
-  ws.map(JSON.decode).map(EVENT.decode)
-    .where((event) => event != null && event.playerId == playerId) // Avoid unknown event and cheater
-    .listen(handleEvents)
-    .onDone(() => connectionLost(playerId)); // Connection is lost
+  handleWebSocket(event);
 }
 
-int generatePlayerId() => new DateTime.now().millisecondsSinceEpoch;
+class _RiskWsServer implements RiskWsServer {
+  final Map<int, WebSocket> _clients = {};
+  final RiskGameEngine game = new RiskGameEngine();
+  final List _eventsHistory = [];
 
-void connectPlayer(int playerId, WebSocket ws){
-  final controler = new StreamController<PlayerEvent>();
-  _clients[playerId] = controler;
-  final eventStream = controler.stream.map(EVENT.encode).map(JSON.encode);
-  ws.addStream(eventStream);
-
-  controler.add(new Welcome()..playerId= playerId);
-  // broadcast all events history to player
-  _eventsHistory.forEach(controler.add);
-}
-
-void connectionLost(int playerId) {
-  print("Connexion is lost");
-  if(_clients.containsKey(playerId)){
-    _clients.remove(playerId).close();
+  final _eventController = new StreamController.broadcast();
+  int currentPlayerId = 1;
+  
+  void handleWebSocket(WebSocket ws) {
+    final playerId = currentPlayerId++;
+    
+    connectPlayer(playerId, ws);
+    
+    ws.map(JSON.decode).map(logEvent("IN", playerId))
+      .map(EVENT.decode)
+      .where((event) => event is PlayerEvent && event.playerId == playerId) // Avoid unknown event and cheater
+      // TODO: should be transform(game.add) when game will implement Transformer issue #20
+      .map(game.handle).where((e) => e != null) // Update game state and output new events
+      .map(storeAndDispatch)
+      .listen(handleEvents)
+      .onDone(() => connectionLost(playerId)); // Connection is lost
   }
-  dispatchEventToAllPlayers(new LeaveGame()..playerId = playerId);
-}
 
-void handleEvents(PlayerEvent event) {
-  print("receive even=$event");
-  _eventsHistory.add(event);
-  if(_handlers[event.runtimeType](event)){
-    dispatchEventToAllPlayers(event);
+  void connectPlayer(int playerId, WebSocket ws) {
+    print("Player $playerId connected");
+
+    _clients[playerId] = ws;
+    
+    // Keep incoming events in a buffer
+    StreamController eventsBuffer = new StreamController()..addStream(_eventController.stream);
+
+    // Concate streams: Welcome event, history events, incoming events
+    var stream = new StreamController();
+    stream.add(new Welcome()..playerId= playerId);
+    stream.addStream(new Stream.fromIterable(_eventsHistory))
+      .then((_) => stream.addStream(eventsBuffer.stream));
+
+    ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)).map(JSON.encode));
   }
-}
 
-void dispatchEventToAllPlayers(PlayerEvent event) {
-  print("Send event $event to all");
-  _clients.values.forEach((controler) => controler.add(event));
-}
+  storeAndDispatch(event) {
+    _eventsHistory.add(event);
+    _eventController.add(event);
+    return event;
+  }
 
-bool handleJoinGame(JoinGame event) {
-  print("Player ${event.playerId} is ready");
-  // TODO add to players
-  return true;
-}
+  handleEvents(event) {
+    if(event is LeaveGame) {
+      handleLeaveGame(event);
+    }
+  }
+  
+  handleLeaveGame(LeaveGame event) {
+    print("Player ${event.playerId} is leaving");
+    removePlayer(event.playerId);
+  }
 
-bool handleLeaveGame(LeaveGame event) {
-  print("Player ${event.playerId} is leaving");
-  _clients[event.playerId].close();
-  _clients.remove(event.playerId);
-  // TODO remove from players
-  return true;
+  connectionLost(int playerId) {
+    print("Connection closed");
+    if(removePlayer(playerId)) {
+      storeAndDispatch(new LeaveGame()..playerId = playerId);
+    }
+  }
+
+  bool removePlayer(int playerId) {
+    var client = _clients.remove(playerId);
+    if (client != null) {
+      client.close();
+    }
+    return client != null;
+  }
+
+  logEvent(String direction, int playerId) => (event) {
+    print("$direction[$playerId] - $event");
+    return event;
+  };
 }

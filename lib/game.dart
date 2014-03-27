@@ -76,12 +76,35 @@ class PlayerState {
 
 typedef EventHandler(event);
 
-class RiskGameEngine {
+abstract class RiskGameEngine {
+
+  factory RiskGameEngine([RiskGame game]) {
+    if(game == null){
+      return new _RiskGameEngine();
+    } else {
+      return new _RiskGameEngine.from(game);
+    }
+  }
+
+  handle(event);
+  
+  RiskGame get game;
+  
+}
+
+class _RiskGameEngine implements RiskGameEngine {
   final RiskGame game;
-  RiskGameEngine(this.game);
+  _RiskGameEngine.from(this.game);
+  _RiskGameEngine(): this.from(new RiskGame());
 
   handle(event) {
-    if (event is ArmyPlaced) {
+    if (event is JoinGame) {
+      // TODO: update state
+      return event;
+    } else if (event is LeaveGame) {
+      // TODO: update state
+      return event;
+    } else if (event is ArmyPlaced) {
       return armyPlaced(event);
     } else {
       return null;
