@@ -68,7 +68,7 @@ var events = {
 main() {
   events.forEach((name, test) => group('$name should be', test.run));
 
-  group('dices matching', () {
+  skip_group('dices matching', () {
     test('[1,2] vs [1]', () {
       final e = new BattleEnded()
           ..attackDices = [1, 2]

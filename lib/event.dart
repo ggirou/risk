@@ -64,17 +64,8 @@ class Defend implements PlayerEvent {
 class BattleEnded {
   List<int> attackDices;
   List<int> defendDices;
-
-  int get lostByAttacker {
-    final attacks = (attackDices.toList()..sort()).reversed.toList();
-    final defends = (defendDices.toList()..sort()).reversed.toList();
-    int result = 0;
-    for (int i = 0; i < defends.length; i++) {
-      if (attacks[i] <= defends[i]) result++;
-    }
-    return result;
-  }
-  int get lostByDefender => defendDices.length - lostByAttacker;
+  int lostByAttacker;
+  int lostByDefender;
 }
 
 /// sent by player to stop attacking

@@ -45,22 +45,27 @@ abstract class RiskWsServer {
 
 class _RiskWsServer implements RiskWsServer {
   final Map<int, WebSocket> _clients = {};
-  final RiskGameEngine game = new RiskGameEngine();
+  final RiskGameEngine game;
   final List _eventsHistory = [];
 
-  final _eventController = new StreamController.broadcast();
+  final StreamController _eventController;
   int currentPlayerId = 1;
-  
+
+  _RiskWsServer() : this._(new StreamController.broadcast());
+  _RiskWsServer._(StreamController eventController) :
+      _eventController = eventController,
+      game = new RiskGameEngine(eventController);
+
   void handleWebSocket(WebSocket ws) {
     final playerId = currentPlayerId++;
-    
+
     connectPlayer(playerId, ws);
-    
+
     ws.map(JSON.decode).map(logEvent("IN", playerId))
       .map(EVENT.decode)
       .where((event) => event is PlayerEvent && event.playerId == playerId) // Avoid unknown event and cheater
       // TODO: should be transform(game.add) when game will implement Transformer issue #20
-      .map(game.handle).where((e) => e != null) // Update game state and output new events
+      .map(game.add).where((e) => e != null) // Update game state and output new events
       .map(storeAndDispatch)
       .listen(handleEvents)
       .onDone(() => connectionLost(playerId)); // Connection is lost
@@ -70,7 +75,7 @@ class _RiskWsServer implements RiskWsServer {
     print("Player $playerId connected");
 
     _clients[playerId] = ws;
-    
+
     // Keep incoming events in a buffer
     StreamController eventsBuffer = new StreamController()..addStream(_eventController.stream);
 
@@ -94,7 +99,7 @@ class _RiskWsServer implements RiskWsServer {
       handleLeaveGame(event);
     }
   }
-  
+
   handleLeaveGame(LeaveGame event) {
     print("Player ${event.playerId} is leaving");
     removePlayer(event.playerId);

@@ -21,7 +21,7 @@ SelectElement eventTemplate = querySelector("#eventTemplate");
 
 const url = "ws://127.0.0.1:8080/ws";
 final ws = new WebSocket(url);
-final game = new RiskGameEngine(new RiskGame());
+final game = new RiskGameEngine(null, game: new RiskGame());
 int playerId;
 
 main() {
