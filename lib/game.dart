@@ -7,46 +7,115 @@ import 'event.dart';
 class RiskGamePlayer {
   final RiskGame game;
   int playerId;
-  EventSink sink;
+  EventSink engineSink;
 
-  RiskGamePlayer(this.game, Stream stream, this.sink) {
-    stream.listen(game.handle);
+  String step = 'startPending';
+  Attack _myAttack;
+
+  RiskGamePlayer(this.game, Stream stream, this.engineSink) {
+    stream.listen(handle);
   }
 
-  void placeArmy(String country) => sink.add(new ArmyPlaced()
+  PlayerState get myState => game.players[playerId];
+
+  void handle(event) {
+    game.handle(event);
+
+    if (event is Welcome) {
+      // nothing
+    } else if (event is JoinGame) {
+      // nothing
+    } else if (event is StartGame) {
+      // nothing
+    } else if (event is GameStarted) {
+      step = 'started';
+    } else if (event is ArmyPlaced) {
+      if (step == 'started' && myState.reinforcement == 0) {
+        step == 'waiting';
+      }
+      if (step == 'reinforcement' && myState.reinforcement == 0) {
+        step = 'attack';
+      }
+    } else if (event is NextPlayer) {
+      if (event.playerId == playerId) {
+        step = 'reinforcement';
+      }
+    } else if (event is Attack) {
+      if (game.countries[event.from].playerId == playerId) {
+        _myAttack = event;
+        step == 'waiting-defense';
+      }
+      if (game.countries[event.to].playerId == playerId) {
+        step = 'defend';
+      }
+    } else if (event is Defend) {
+      // nothing
+    } else if (event is BattleEnded) {
+      if (step == 'attack') {
+        if (game.countries[_myAttack.to].playerId == playerId) {
+          step = 'battleMove';
+          if (game.countries[_myAttack.from].armies == 2) {
+            moveArmies(_myAttack.from, _myAttack.to, 1);
+          }
+        } else {
+          step = 'attack';
+          _myAttack = null;
+        }
+      }
+    } else if (event is Move) {
+      if (event.playerId == playerId) {
+        if (step == 'battleMove') {
+          _myAttack = null;
+          step == 'attack';
+        } else if (step == 'fortification') {
+          endTurn();
+        }
+      }
+    } else if (event is EndAttack) {
+      if (event.playerId == playerId) {
+        step == 'fortification';
+      }
+    } else if (event is EndTurn) {
+      if (event.playerId == playerId) {
+        step = 'waiting';
+      }
+    } else if (event is LeaveGame) {
+      // TODO WAT ?
+    }
+  }
+
+  void moveArmies(String from, String to, int armies) => engineSink.add(
+      new Move()
+      ..playerId = playerId
+      ..from = from
+      ..to = to
+      ..armies = armies);
+
+  void placeArmy(String country) => engineSink.add(new ArmyPlaced()
       ..playerId = playerId
       ..country = country);
 
-  void attack(String from, String to) => sink.add(new Attack()
+  void attack(String from, String to) => engineSink.add(new Attack()
       ..playerId = playerId
       ..from = from
       ..to = to
       ..armies = min(3, game.countries[from].armies));
 
-  void defend() => sink.add(new Defend()
+  void defend() => engineSink.add(new Defend()
       ..playerId = playerId
       ..armies = min(2, game.countries[game.lastAttack.to].armies));
 
-  void endAttack() => sink.add(new EndAttack()..playerId = playerId);
+  void endAttack() => engineSink.add(new EndAttack()..playerId = playerId);
 
-  void endTurn() => sink.add(new EndTurn()..playerId = playerId);
+  void endTurn() => engineSink.add(new EndTurn()..playerId = playerId);
 }
 
-class Step {
-  static final Step REINFORCEMENT = new Step('reinforcement');
-  static final Step ATTACK = new Step('attack');
-  static final Step FORTIFICATION = new Step('fortification');
-
-  final String code;
-  const Step(this.code);
-}
 
 class RiskGame {
   Map<String, CountryState> countries = {};
   Map<int, PlayerState> players = {};
   List<int> playersOrder;
   int activePlayerId;
-  Step currentStep;
 
   Attack lastAttack;
 
@@ -62,15 +131,12 @@ class RiskGame {
       // nothing
     } else if (event is GameStarted) {
       playersOrder = event.playersOrder;
+      players.values.forEach((ps) => ps.reinforcement += event.armies);
     } else if (event is ArmyPlaced) {
       countries.putIfAbsent(event.country, () => new CountryState(
           event.playerId, 0)).armies++;
-      if (players[event.playerId].reinforcement == 0) {
-        currentStep = Step.ATTACK;
-      }
     } else if (event is NextPlayer) {
       activePlayerId = event.playerId;
-      currentStep = Step.REINFORCEMENT;
       players[event.playerId].reinforcement = event.reinforcement;
     } else if (event is Attack) {
       lastAttack = event;
@@ -110,8 +176,7 @@ class PlayerState {
   PlayerState(this.name, this.avatar, {this.reinforcement: 0});
 }
 
-final _RANDOM = new Random();
-
+Random random = new Random();
 
 class RiskGameEngine {
   final RiskGame game;
@@ -133,7 +198,8 @@ class RiskGameEngine {
     _eventsHistory.forEach(sink.add);
 
     // handle stream
-    stream.listen(handle);
+    avoidCheaters(event) => event is PlayerEvent && event.playerId == playerId;
+    stream.where(avoidCheaters).listen(handle);
   }
 
   void handle(event) {
@@ -163,7 +229,7 @@ class RiskGameEngine {
     } else if (event is Attack) {
       // nothing
     } else if (event is Defend) {
-      rollDices(n) => new List<int>.generate(n, _RANDOM.nextInt(6) + 1);
+      rollDices(n) => new List<int>.generate(n, (_) => random.nextInt(6) + 1);
       _broadcast(new BattleEnded()
           ..attackDices = rollDices(game.lastAttack.armies)
           ..defendDices = rollDices(event.armies));
