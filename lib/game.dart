@@ -36,15 +36,16 @@ class PlayerState {
 
 Random random = new Random();
 
-class RiskGameEngine implements EventSink {
+class RiskGameEngine {
   final RiskGame game;
   final EventSink outSink;
 
-  RiskGameEngine(this.outSink, {RiskGame game}): this.game = game != null ? game
-      : new RiskGame();
+  RiskGameEngine.client({RiskGame game})
+      : this.outSink = null,
+        this.game = game != null ? game : new RiskGame();
+  RiskGameEngine.server(this.outSink): this.game = new RiskGame();
 
-  @override
-  void add(event) {
+  void handle(event) {
     if (event is Welcome) {
       // nothing
     } else if (event is JoinGame) {
@@ -197,12 +198,6 @@ class RiskGameEngine implements EventSink {
   void onLeaveGame(LeaveGame event) {
   }
 
-  @override
-  void addError(errorEvent, [StackTrace stackTrace]) {}
-
-  @override
-  void close() {}
-
   void sendGameStarted() {
     _broadcast(new GameStarted()
         ..armies = START_ARMIES[game.players.length]
@@ -220,6 +215,6 @@ class RiskGameEngine implements EventSink {
   _broadcast(event) {
     if (outSink == null) return;
     outSink.add(event);
-    add(event);
+    handle(event);
   }
 }

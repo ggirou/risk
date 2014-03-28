@@ -52,9 +52,11 @@ class _RiskWsServer implements RiskWsServer {
   int currentPlayerId = 1;
 
   _RiskWsServer() : this._(new StreamController.broadcast());
-  _RiskWsServer._(StreamController eventController) :
-      _eventController = eventController,
-      game = new RiskGameEngine(eventController);
+  _RiskWsServer._(StreamController eventController)
+      : _eventController = eventController,
+        game = new RiskGameEngine.server(eventController) {
+    _eventController.stream.listen(_eventsHistory.add);
+  }
 
   void handleWebSocket(WebSocket ws) {
     final playerId = currentPlayerId++;
@@ -64,9 +66,8 @@ class _RiskWsServer implements RiskWsServer {
     ws.map(JSON.decode).map(logEvent("IN", playerId))
       .map(EVENT.decode)
       .where((event) => event is PlayerEvent && event.playerId == playerId) // Avoid unknown event and cheater
-      // TODO: should be transform(game.add) when game will implement Transformer issue #20
-      .map(game.add).where((e) => e != null) // Update game state and output new events
       .map(storeAndDispatch)
+      .map((e) { game.handle(e); return e;})
       .listen(handleEvents)
       .onDone(() => connectionLost(playerId)); // Connection is lost
   }

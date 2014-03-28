@@ -12,7 +12,7 @@ main() {
     RiskGameEngine eventHandler;
 
     setUp(() {
-      eventHandler = new RiskGameEngine(null, game: riskGame());
+      eventHandler = new RiskGameEngine.client(game: riskGame());
     });
 
     group('on ArmyPlaced', () {
@@ -23,7 +23,7 @@ main() {
             ..country = "eastern_australia";
 
         // WHEN
-        eventHandler.add(event);
+        eventHandler.handle(event);
 
         // THEN
         var expected = riskGame();
@@ -40,7 +40,7 @@ main() {
             ..country = "western_australia";
 
         // WHEN
-        eventHandler.add(event);
+        eventHandler.handle(event);
 
         // THEN
         var expected = riskGame();
@@ -57,7 +57,7 @@ main() {
             ..country = "western_australia";
 
         // WHEN
-        eventHandler.add(event);
+        eventHandler.handle(event);
 
         // THEN
         var expected = riskGame();
@@ -73,7 +73,7 @@ main() {
             ..country = "western_australia";
 
         // WHEN
-        eventHandler.add(event);
+        eventHandler.handle(event);
 
         // THEN
         var expected = riskGame();
