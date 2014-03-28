@@ -36,6 +36,14 @@ class PlayerState {
 
 Random random = new Random();
 
+int computeLostByAttacker(List<int> attacks, List<int> defends) {
+  int result = 0;
+  for (int i = 0; i < defends.length; i++) {
+    if (attacks[i] <= defends[i]) result++;
+  }
+  return result;
+}
+
 class RiskGameEngine {
   final RiskGame game;
   final EventSink outSink;
@@ -129,13 +137,6 @@ class RiskGameEngine {
   void onDefend(Defend event) {
     if (event.playerId != game.countries[game.lastAttack.to].playerId) return;
 
-    int computeLostByAttacker(attacks, defends) {
-      int result = 0;
-      for (int i = 0; i < defends.length; i++) {
-        if (attacks[i] <= defends[i]) result++;
-      }
-      return result;
-    }
     rollDices(n) => (new List<int>.generate(n, (_) => random.nextInt(6) + 1
         )..sort()).reversed.toList();
     final attacks = rollDices(game.lastAttack.armies);

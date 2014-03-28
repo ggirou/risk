@@ -67,51 +67,6 @@ var events = {
 
 main() {
   events.forEach((name, test) => group('$name should be', test.run));
-
-  skip_group('dices matching', () {
-    test('[1,2] vs [1]', () {
-      final e = new BattleEnded()
-          ..attackDices = [1, 2]
-          ..defendDices = [1];
-      expect(e.lostByAttacker, equals(0));
-      expect(e.lostByDefender, equals(1));
-    });
-    test('[1,1] vs [1]', () {
-      final e = new BattleEnded()
-      ..attackDices = [1, 1]
-      ..defendDices = [1];
-      expect(e.lostByAttacker, equals(1));
-      expect(e.lostByDefender, equals(0));
-    });
-    test('[1,1,1] vs [1]', () {
-      final e = new BattleEnded()
-      ..attackDices = [1, 1, 1]
-      ..defendDices = [1];
-      expect(e.lostByAttacker, equals(1));
-      expect(e.lostByDefender, equals(0));
-    });
-    test('[2,2,1] vs [2,1]', () {
-      final e = new BattleEnded()
-      ..attackDices = [2,2,1]
-      ..defendDices = [2,1];
-      expect(e.lostByAttacker, equals(1));
-      expect(e.lostByDefender, equals(1));
-    });
-    test('[2,2,1] vs [1,1]', () {
-      final e = new BattleEnded()
-      ..attackDices = [2,2,1]
-      ..defendDices = [1,1];
-      expect(e.lostByAttacker, equals(0));
-      expect(e.lostByDefender, equals(2));
-    });
-    test('[2,2,1] vs [3,4]', () {
-      final e = new BattleEnded()
-      ..attackDices = [2,2,1]
-      ..defendDices = [3,4];
-      expect(e.lostByAttacker, equals(2));
-      expect(e.lostByDefender, equals(0));
-    });
-  });
 }
 
 class SerializableTest {
