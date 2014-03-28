@@ -145,6 +145,11 @@ class RiskGameEngine {
 
     // valid attack
     game.lastAttack = event;
+
+    // automatic defend
+    _broadcast(new Defend()
+        ..playerId = game.countries[event.to].playerId
+        ..armies = min(2, game.countries[event.to].armies));
   }
 
   void onDefend(Defend event) {
