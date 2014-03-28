@@ -2,7 +2,9 @@ library risk.game;
 
 import 'dart:async';
 import 'dart:math';
+
 import 'event.dart';
+import 'map.dart';
 
 const PLAYERS_MIN = 2;
 const PLAYERS_MAX = 6;
@@ -131,6 +133,17 @@ class RiskGameEngine {
   void onAttack(Attack event) {
     if (event.playerId != game.activePlayerId) return;
 
+    // if the attacked country is owned by another player
+    if (game.countries[event.to].playerId == event.playerId) return;
+
+    // if the attacker has enough armies in the from country
+    if (game.countries[event.from].armies < 2) return;
+
+    // if the attacked country is in the neighbourhood
+    if (!Country.findById(event.from).neighbours.contains(Country.findById(
+        event.to))) return;
+
+    // valid attack
     game.lastAttack = event;
   }
 
@@ -165,11 +178,26 @@ class RiskGameEngine {
             ..armies = 1);
       }
     }
-    game.lastAttack = null;
   }
 
   void onMove(Move event) {
     if (event.playerId != game.activePlayerId) return;
+
+    // if the attacked country is owned by another player
+    if (game.countries[event.to].playerId != event.playerId) return;
+
+    // if the attacker has enough armies in the from country
+    if (game.countries[event.from].armies - event.armies < 1) return;
+
+    // if the attacked country is in the neighbourhood
+    if (!Country.findById(event.from).neighbours.contains(Country.findById(
+        event.to))) return;
+
+    // if attack move, countries must be the same as attack
+    if (game.step == null && (event.from != game.lastAttack.from || event.to !=
+        game.lastAttack.to)) return;
+
+    game.lastAttack = null;
 
     game.countries[event.from].armies -= event.armies;
     game.countries[event.to].armies += event.armies;
