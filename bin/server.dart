@@ -29,7 +29,7 @@ main() {
         }
       });
     });
-  }, onError: (Error e) => print("An error occurred $e"));
+  }, onError: (e) => print("An error occurred $e"));
 }
 
 void directoryHandler(dir, request) {
@@ -66,9 +66,18 @@ class _RiskWsServer implements RiskWsServer {
     ws.map(JSON.decode).map(logEvent("IN", playerId))
       .map(EVENT.decode)
       .where((event) => event is PlayerEvent && event.playerId == playerId) // Avoid unknown event and cheater
-      .map(storeAndDispatch)
-      .map((e) { game.handle(e); return e;})
-      .listen(handleEvents)
+      .listen((event) {
+        // store and dispatch
+        storeAndDispatch(event);
+
+        // handle event in game engine
+        game.handle(event);
+
+        // handle Leaves
+        if(event is LeaveGame) {
+          handleLeaveGame(event);
+        }
+      })
       .onDone(() => connectionLost(playerId)); // Connection is lost
   }
 
@@ -77,28 +86,18 @@ class _RiskWsServer implements RiskWsServer {
 
     _clients[playerId] = ws;
 
-    // Keep incoming events in a buffer
-    StreamController eventsBuffer = new StreamController()..addStream(_eventController.stream);
-
     // Concate streams: Welcome event, history events, incoming events
     var stream = new StreamController();
     stream.add(new Welcome()..playerId= playerId);
-    stream.addStream(new Stream.fromIterable(_eventsHistory))
-      .then((_) => stream.addStream(eventsBuffer.stream));
+    _eventsHistory.forEach(stream.add);
+    stream.addStream(_eventController.stream);
 
     ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)).map(JSON.encode));
   }
 
   storeAndDispatch(event) {
-    _eventsHistory.add(event);
     _eventController.add(event);
     return event;
-  }
-
-  handleEvents(event) {
-    if(event is LeaveGame) {
-      handleLeaveGame(event);
-    }
   }
 
   handleLeaveGame(LeaveGame event) {
