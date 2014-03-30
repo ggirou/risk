@@ -8,11 +8,32 @@ import 'package:collection/equality.dart';
 const riskGameEq = const RiskGameEquality();
 
 main() {
+  group('dices matching', () {
+    test('[2,1] vs [1]', () {
+      expect(computeLostByAttacker([2, 1], [1]), equals(0));
+    });
+    test('[1,1] vs [1]', () {
+      expect(computeLostByAttacker([1, 1], [1]), equals(1));
+    });
+    test('[1,1,1] vs [1]', () {
+      expect(computeLostByAttacker([1, 1, 1], [1]), equals(1));
+    });
+    test('[2,2,1] vs [2,1]', () {
+      expect(computeLostByAttacker([2, 2, 1], [2, 1]), equals(1));
+    });
+    test('[2,2,1] vs [1,1]', () {
+      expect(computeLostByAttacker([2, 2, 1], [1, 1]), equals(0));
+    });
+    test('[2,2,1] vs [4,3]', () {
+      expect(computeLostByAttacker([2, 2, 1], [4, 3]), equals(2));
+    });
+  });
+
   group('RiskGameEngine', () {
     RiskGameEngine eventHandler;
 
     setUp(() {
-      eventHandler = new RiskGameEngine(riskGame());
+      eventHandler = new RiskGameEngine.client(game: riskGame());
     });
 
     group('on ArmyPlaced', () {
@@ -23,7 +44,7 @@ main() {
             ..country = "eastern_australia";
 
         // WHEN
-        var output = eventHandler.handle(event);
+        eventHandler.handle(event);
 
         // THEN
         var expected = riskGame();

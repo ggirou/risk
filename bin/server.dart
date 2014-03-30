@@ -29,7 +29,7 @@ main() {
         }
       });
     });
-  }, onError: (Error e) => print("An error occurred $e"));
+  }, onError: (e) => print("An error occurred $e"));
 }
 
 void directoryHandler(dir, request) {
@@ -45,24 +45,39 @@ abstract class RiskWsServer {
 
 class _RiskWsServer implements RiskWsServer {
   final Map<int, WebSocket> _clients = {};
-  final RiskGameEngine game = new RiskGameEngine();
+  final RiskGameEngine game;
   final List _eventsHistory = [];
 
-  final _eventController = new StreamController.broadcast();
+  final StreamController _eventController;
   int currentPlayerId = 1;
-  
+
+  _RiskWsServer() : this._(new StreamController.broadcast());
+  _RiskWsServer._(StreamController eventController)
+      : _eventController = eventController,
+        game = new RiskGameEngine.server(eventController) {
+    _eventController.stream.listen(_eventsHistory.add);
+  }
+
   void handleWebSocket(WebSocket ws) {
     final playerId = currentPlayerId++;
-    
+
     connectPlayer(playerId, ws);
-    
+
     ws.map(JSON.decode).map(logEvent("IN", playerId))
       .map(EVENT.decode)
       .where((event) => event is PlayerEvent && event.playerId == playerId) // Avoid unknown event and cheater
-      // TODO: should be transform(game.add) when game will implement Transformer issue #20
-      .map(game.handle).where((e) => e != null) // Update game state and output new events
-      .map(storeAndDispatch)
-      .listen(handleEvents)
+      .listen((event) {
+        // store and dispatch
+        storeAndDispatch(event);
+
+        // handle event in game engine
+        game.handle(event);
+
+        // handle Leaves
+        if(event is LeaveGame) {
+          handleLeaveGame(event);
+        }
+      })
       .onDone(() => connectionLost(playerId)); // Connection is lost
   }
 
@@ -70,31 +85,21 @@ class _RiskWsServer implements RiskWsServer {
     print("Player $playerId connected");
 
     _clients[playerId] = ws;
-    
-    // Keep incoming events in a buffer
-    StreamController eventsBuffer = new StreamController()..addStream(_eventController.stream);
 
     // Concate streams: Welcome event, history events, incoming events
     var stream = new StreamController();
     stream.add(new Welcome()..playerId= playerId);
-    stream.addStream(new Stream.fromIterable(_eventsHistory))
-      .then((_) => stream.addStream(eventsBuffer.stream));
+    _eventsHistory.forEach(stream.add);
+    stream.addStream(_eventController.stream);
 
     ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)).map(JSON.encode));
   }
 
   storeAndDispatch(event) {
-    _eventsHistory.add(event);
     _eventController.add(event);
     return event;
   }
 
-  handleEvents(event) {
-    if(event is LeaveGame) {
-      handleLeaveGame(event);
-    }
-  }
-  
   handleLeaveGame(LeaveGame event) {
     print("Player ${event.playerId} is leaving");
     removePlayer(event.playerId);
