@@ -5,9 +5,7 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
 import 'package:risk/game.dart';
 import 'package:risk/event.dart';
-import 'package:collection/equality.dart';
-
-const riskGameEq = const RiskGameEquality();
+import 'utils.dart';
 
 main() {
   group('dices matching', () {
@@ -58,7 +56,7 @@ testRiskGame() {
     expected.players[123] = new PlayerState("John Lennon", "kadhafi.png", "red"
         );
 
-    expect(riskGameEq.equals(expected, game), isTrue);
+    expectEquals(game, expected);
   });
 
   test('on GameStarted should set player orders and player reinforcements', () {
@@ -77,7 +75,7 @@ testRiskGame() {
     expected.players[1].reinforcement = 42;
     expected.players[2].reinforcement = 42;
 
-    expect(riskGameEq.equals(expected, game), isTrue);
+    expectEquals(game, expected);
   });
 
   test('on ArmyPlaced should add an army on a neutral country', () {
@@ -94,7 +92,7 @@ testRiskGame() {
     expected.countries["eastern_australia"] = new CountryState(0, 1);
     expected.players[0].reinforcement--;
 
-    expect(riskGameEq.equals(expected, game), isTrue);
+    expectEquals(game, expected);
   });
 
   test('on ArmyPlaced should add an army on country owned by the player', () {
@@ -111,7 +109,7 @@ testRiskGame() {
     expected.countries["western_australia"].armies++;
     expected.players[1].reinforcement--;
 
-    expect(riskGameEq.equals(expected, game), isTrue);
+    expectEquals(game, expected);
   });
 
   test('on NextPlayer should set the current player and his reinforcement', () {
@@ -128,7 +126,7 @@ testRiskGame() {
     expected.activePlayerId = 2;
     expected.players[2].reinforcement = 42;
 
-    expect(riskGameEq.equals(expected, game), isTrue);
+    expectEquals(game, expected);
   });
 
   test('on BattleEnded should set remaining armies in countries', () {
@@ -153,7 +151,7 @@ testRiskGame() {
     expected.countries["western_australia"].armies = 2;
     expected.countries["indonesia"].armies = 1;
 
-    expect(riskGameEq.equals(expected, game), isTrue);
+    expectEquals(game, expected);
   });
 
   test('on ArmyMoved should move armies', () {
@@ -172,7 +170,7 @@ testRiskGame() {
     expected.countries["new_guinea"].armies -= 2;
     expected.countries["western_australia"].armies += 2;
 
-    expect(riskGameEq.equals(expected, game), isTrue);
+    expectEquals(game, expected);
   });
 
 }
@@ -194,9 +192,7 @@ testRiskGameEngine() {
     return outputStream.stream.toList();
   };
   var expectEvents = (List<EngineEvent> expectedEvents) => eventsList().then(
-      (events) {
-    expect(events.map(EVENT.encode), equals(expectedEvents.map(EVENT.encode)));
-  });
+      (events) => expectEquals(events, expectedEvents));
 
   group('on JoinGame', () {
     test('should add a player', () {
@@ -215,7 +211,7 @@ testRiskGameEngine() {
       expected.players[123] = new PlayerState("John Lennon", "kadhafi.png",
           "red");
 
-      expect(riskGameEq.equals(expected, engine.game), isTrue);
+      expectEquals(expected, engine.game);
       return expectEvents([new PlayerJoined()
             ..playerId = 123
             ..name = "John Lennon"
@@ -237,7 +233,7 @@ testRiskGameEngine() {
       // THEN
       var expected = riskGame();
 
-      expect(riskGameEq.equals(expected, engine.game), isTrue);
+      expectEquals(expected, engine.game);
       return expectEvents([]);
     });
   });
@@ -258,7 +254,7 @@ testRiskGameEngine() {
       expected.activePlayerId = 2;
       expected.players[2].reinforcement = 35;
 
-      //expect(riskGameEq.equals(expected, engine.game), isTrue);
+      //expectEquals(expected, engine.game);
       return expectEvents([new GameStarted()
             ..armies = 35
             ..playersOrder = [2, 1, 0], new NextPlayer()
@@ -276,7 +272,7 @@ testRiskGameEngine() {
       // THEN
       var expected = riskGame();
 
-      expect(riskGameEq.equals(expected, engine.game), isTrue);
+      expectEquals(expected, engine.game);
       return expectEvents([]);
     });
 
@@ -296,7 +292,7 @@ testRiskGameEngine() {
         0: playerState()
       };
 
-      expect(riskGameEq.equals(expected, engine.game), isTrue);
+      expectEquals(expected, engine.game);
       return expectEvents([]);
     });
   });
@@ -317,7 +313,7 @@ testRiskGameEngine() {
       expected.countries["eastern_australia"] = new CountryState(1, 1);
       expected.players[1].reinforcement--;
 
-      expect(riskGameEq.equals(expected, engine.game), isTrue);
+      expectEquals(expected, engine.game);
       return expectEvents([new ArmyPlaced()
             ..playerId = 1
             ..country = "eastern_australia"]);
@@ -338,7 +334,7 @@ testRiskGameEngine() {
       expected.countries["western_australia"].armies++;
       expected.players[1].reinforcement--;
 
-      expect(riskGameEq.equals(expected, engine.game), isTrue);
+      expectEquals(expected, engine.game);
       return expectEvents([new ArmyPlaced()
             ..playerId = 1
             ..country = "western_australia"]);
@@ -356,7 +352,7 @@ testRiskGameEngine() {
       // THEN
       var expected = riskGame();
 
-      expect(riskGameEq.equals(expected, engine.game), isTrue);
+      expectEquals(expected, engine.game);
       return expectEvents([]);
     });
 
@@ -375,7 +371,7 @@ testRiskGameEngine() {
       var expected = riskGame();
       expected.activePlayerId = 2;
 
-      expect(riskGameEq.equals(expected, engine.game), isTrue);
+      expectEquals(expected, engine.game);
       return expectEvents([]);
     });
   });
@@ -397,38 +393,6 @@ riskGame() => new RiskGame()
 
 playerState({name: "John", avatar: "avatar.png", color: "blue", reinforcement:
     0}) => new PlayerState(name, avatar, color, reinforcement: reinforcement);
-
-class RiskGameEquality implements Equality<RiskGame> {
-  final _countryEq = const MapEquality(values: const CountryStateEquality());
-  final _playerEq = const MapEquality(values: const PlayerStateEquality());
-  final _orderEq = const ListEquality();
-
-  const RiskGameEquality();
-
-  bool equals(RiskGame e1, RiskGame e2) => _countryEq.equals(e1.countries,
-      e2.countries) && _playerEq.equals(e1.players, e2.players) && e1.activePlayerId
-      == e2.activePlayerId && _orderEq.equals(e1.playersOrder, e2.playersOrder);
-  int hash(RiskGame e) => _countryEq.hash(e.countries) ^ _playerEq.hash(
-      e.players) ^ e.activePlayerId.hashCode ^ _orderEq.hash(e.playersOrder);
-  bool isValidKey(Object o) => o is RiskGame;
-}
-
-class CountryStateEquality implements Equality<CountryState> {
-  const CountryStateEquality();
-  bool equals(CountryState e1, CountryState e2) => e1.playerId == e2.playerId &&
-      e1.armies == e2.armies;
-  int hash(CountryState e) => e.playerId.hashCode ^ e.armies.hashCode;
-  bool isValidKey(Object o) => o is CountryState;
-}
-
-class PlayerStateEquality implements Equality<PlayerState> {
-  const PlayerStateEquality();
-  bool equals(PlayerState e1, PlayerState e2) => e1.name == e2.name && e1.avatar
-      == e2.avatar && e1.color == e2.color && e1.reinforcement == e2.reinforcement;
-  int hash(PlayerState e) => e.name.hashCode ^ e.avatar.hashCode ^
-      e.color.hashCode ^ e.reinforcement.hashCode;
-  bool isValidKey(Object o) => o is PlayerState;
-}
 
 class HazardMock extends Mock implements Hazard {
   List<int> giveOrders(Iterable<int> players) => players.toList(
