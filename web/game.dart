@@ -13,9 +13,9 @@ class RiskGame extends PolymerElement {
   // Whether styles from the document apply to the contents of the component
   bool get applyAuthorStyles => true;
 
-  var gameEngine = new Game.RiskGameEngine.client(game: new Game.RiskGame()
+  var game = new Game.RiskGame()
       ..countries = toObservable({})
-      ..players = toObservable({}));
+      ..players = toObservable({});
 
   final WebSocket ws;
 
@@ -32,7 +32,7 @@ class RiskGame extends PolymerElement {
   }
 
   handleEvents(event) {
-    gameEngine.handle(event);
+    game.handle(event);
 
     if (event is Welcome) {
       playerId = event.playerId;

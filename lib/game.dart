@@ -10,17 +10,43 @@ const PLAYERS_MIN = 2;
 const PLAYERS_MAX = 6;
 const START_ARMIES = const [0, 0, 40, 35, 30, 25, 20];
 
+const TURN_STEP_REINFORCEMENT = 'REINFORCEMENT';
+const TURN_STEP_ATTACK = 'ATTACK';
+const TURN_STEP_FORTIFICATION = 'FORTIFICATION';
+
 class RiskGame {
   Map<String, CountryState> countries = {};
   Map<int, PlayerState> players = {};
   List<int> playersOrder;
   int activePlayerId;
 
-  Attack lastAttack;
-
-  String step;
-
   RiskGame();
+  RiskGame.fromHistory(List<EngineEvent> events) {
+    events.forEach(update);
+  }
+
+  void update(EngineEvent event) {
+    if (event is PlayerJoined) {
+      players[event.playerId] = new PlayerState(event.name, event.avatar,
+          event.color);
+    } else if (event is GameStarted) {
+      playersOrder = event.playersOrder;
+      players.values.forEach((ps) => ps.reinforcement = event.armies);
+    } else if (event is ArmyPlaced) {
+      countries.putIfAbsent(event.country, () => new CountryState(
+          event.playerId, 0)).armies++;
+      players[event.playerId].reinforcement--;
+    } else if (event is NextPlayer) {
+      activePlayerId = event.playerId;
+      players[event.playerId].reinforcement = event.reinforcement;
+    } else if (event is BattleEnded) {
+      countries[event.attacker.country].armies = event.attacker.remainingArmies;
+      countries[event.defender.country].armies = event.defender.remainingArmies;
+    } else if (event is ArmyMoved) {
+      countries[event.from].armies -= event.armies;
+      countries[event.to].armies += event.armies;
+    }
+  }
 }
 
 class CountryState {
@@ -32,11 +58,10 @@ class CountryState {
 class PlayerState {
   final String name;
   final String avatar;
+  final String color;
   int reinforcement;
-  PlayerState(this.name, this.avatar, {this.reinforcement: 0});
+  PlayerState(this.name, this.avatar, this.color, {this.reinforcement: 0});
 }
-
-Random random = new Random();
 
 int computeLostByAttacker(List<int> attacks, List<int> defends) {
   int result = 0;
@@ -46,48 +71,64 @@ int computeLostByAttacker(List<int> attacks, List<int> defends) {
   return result;
 }
 
+/// Hazard of the game
+class Hazard {
+  final Random _random = new Random();
+
+  /// Shuffles the [players] order
+  List<int> giveOrders(Iterable<int> players) => players.toList()..shuffle(
+      _random);
+
+  /// Rolls [n] dices and returns the result in descending order
+  List<int> rollDices(int n) => (new List<int>.generate(n, (_) => _random.nextInt(6) + 1
+      )..sort()).reversed.toList();
+}
+
 class RiskGameEngine {
   final RiskGame game;
-  final EventSink outSink;
+  final EventSink<EngineEvent> outSink;
+  final List<EngineEvent> history = [];
 
+  Hazard hazard = new Hazard();
+
+  bool setupPhase = true;
+  String turnStep;
+  BattleEnded lastBattle;
+
+  // TODO: refactor
   RiskGameEngine.client({RiskGame game})
       : this.outSink = null,
         this.game = game != null ? game : new RiskGame();
-  RiskGameEngine.server(this.outSink): this.game = new RiskGame();
+  RiskGameEngine.server(this.outSink, {RiskGame game}): this.game = game != null
+      ? game : new RiskGame();
 
-  void handle(event) {
-    if (event is Welcome) {
-      // nothing
-    } else if (event is JoinGame) {
+  void handle(PlayerEvent event) {
+    if (event is JoinGame) {
       onJoinGame(event);
     } else if (event is StartGame) {
       onStartGame(event);
-    } else if (event is GameStarted) {
-      onGameStarted(event);
-    } else if (event is ArmyPlaced) {
-      onArmyPlaced(event);
-    } else if (event is NextPlayer) {
-      onNextPlayer(event);
+    } else if (event is PlaceArmy) {
+      onPlaceArmy(event);
     } else if (event is Attack) {
       onAttack(event);
-    } else if (event is Defend) {
-      onDefend(event);
-    } else if (event is BattleEnded) {
-      onBattleEnded(event);
     } else if (event is EndAttack) {
       onEndAttack(event);
-    } else if (event is Move) {
+    } else if (event is MoveArmy) {
       onMove(event);
     } else if (event is EndTurn) {
       onEndTurn(event);
-    } else if (event is LeaveGame) {
-      onLeaveGame(event);
     }
   }
 
   void onJoinGame(JoinGame event) {
-    game.players.putIfAbsent(event.playerId, () => new PlayerState(event.name,
-        event.avatar, reinforcement: 0));
+    if (game.players.containsKey(event.playerId)) return;
+
+    _broadcast(new PlayerJoined()
+        ..playerId = event.playerId
+        ..name = event.name
+        ..avatar = event.avatar
+        ..color = event.color);
+
     if (game.players.length == PLAYERS_MAX) {
       sendGameStarted();
     }
@@ -101,91 +142,81 @@ class RiskGameEngine {
     }
   }
 
-  void onGameStarted(GameStarted event) {
-    game.playersOrder = event.playersOrder;
+  void sendGameStarted() {
+    setupPhase = true;
+    _broadcast(new GameStarted()
+        ..armies = START_ARMIES[game.players.length]
+        ..playersOrder = hazard.giveOrders(game.players.keys));
+    sendNextPlayer();
   }
 
-  void onArmyPlaced(ArmyPlaced event) {
-    if (game.activePlayerId != null && event.playerId != game.activePlayerId)
-        return;
-
+  void onPlaceArmy(PlaceArmy event) {
     var playerId = event.playerId;
-    var playerState = game.players[playerId];
-    if (playerState.reinforcement > 0) {
-      var countryState = game.countries.putIfAbsent(event.country, () =>
-          new CountryState(playerId, 0));
-      if (countryState.playerId == playerId) {
-        playerState.reinforcement--;
-        countryState.armies++;
-      }
-    }
-    if (game.activePlayerId == null && game.players.values.every((ps) =>
-        ps.reinforcement == 0)) {
-      sendNextPlayer(game.playersOrder.first);
-    }
-  }
 
-  void onNextPlayer(NextPlayer event) {
-    game.activePlayerId = event.playerId;
-    game.players[event.playerId].reinforcement = event.reinforcement;
+    // if another player try to play
+    if (playerId != game.activePlayerId) return;
+
+    // if player as not enough armies
+    if (game.players[playerId].reinforcement == 0) return;
+
+    // if country is owned by another player
+    var countryState = game.countries[event.country];
+    if (countryState != null && countryState.playerId != playerId) return;
+
+    _broadcast(new ArmyPlaced()
+        ..playerId = playerId
+        ..country = event.country);
+
+    if (setupPhase) {
+      setupPhase = game.players.values.any((ps) => ps.reinforcement > 0);
+      sendNextPlayer();
+    } else if (game.players[playerId].reinforcement == 0) {
+      turnStep = TURN_STEP_ATTACK;
+    }
   }
 
   void onAttack(Attack event) {
+    var playerId = event.playerId;
+
+    // if another player try to play
     if (event.playerId != game.activePlayerId) return;
 
-    // if the attacked country is owned by another player
-    if (game.countries[event.to].playerId == event.playerId) return;
+    var defenderId = game.countries[event.to].playerId;
+    // Attacked country must be owned by another player
+    if (defenderId == event.playerId) return;
 
-    // if the attacker has enough armies in the from country
-    if (game.countries[event.from].armies < 2) return;
+    // Attacker must have enough armies in the from country
+    if (game.countries[event.from].armies <= event.armies) return;
 
-    // if the attacked country is in the neighbourhood
+    // The attacked country must be in the neighbourhood
     if (!Country.findById(event.from).neighbours.contains(Country.findById(
         event.to))) return;
 
-    // valid attack
-    game.lastAttack = event;
+    var attacker = new BattleOpponentResult()
+        ..playerId = playerId
+        ..dices = hazard.rollDices(event.armies)
+        ..country = event.from;
+    var defender = new BattleOpponentResult()
+        ..playerId = defenderId
+        ..dices = hazard.rollDices(min(2, game.countries[event.to].armies))
+        ..country = event.to;
 
-    // automatic defend
-    _broadcast(new Defend()
-        ..playerId = game.countries[event.to].playerId
-        ..armies = min(2, game.countries[event.to].armies));
+    var attackerLoss = computeLostByAttacker(attacker.dices, defender.dices);
+    var defenderLoss = defender.dices.length - attackerLoss;
+
+    attacker.remainingArmies = game.countries[attacker.country].armies -
+        attackerLoss;
+    defender.remainingArmies = game.countries[defender.country].armies -
+        defenderLoss;
+
+    lastBattle = new BattleEnded()
+        ..attacker = attacker
+        ..defender = defender;
+
+    _broadcast(lastBattle);
   }
 
-  void onDefend(Defend event) {
-    if (event.playerId != game.countries[game.lastAttack.to].playerId) return;
-
-    rollDices(n) => (new List<int>.generate(n, (_) => random.nextInt(6) + 1
-        )..sort()).reversed.toList();
-    final attacks = rollDices(game.lastAttack.armies);
-    final defends = rollDices(event.armies);
-    final lostByAttacker = computeLostByAttacker(attacks, defends);
-    final lostByDefender = defends.length - lostByAttacker;
-    _broadcast(new BattleEnded()
-        ..attackDices = attacks
-        ..defendDices = defends
-        ..lostByAttacker = lostByAttacker
-        ..lostByDefender = lostByDefender);
-  }
-
-  void onBattleEnded(BattleEnded event) {
-    final from = game.countries[game.lastAttack.from];
-    final to = game.countries[game.lastAttack.to];
-    from.armies -= event.lostByAttacker;
-    to.armies -= event.lostByDefender;
-    if (to.armies == 0) {
-      to.playerId = game.lastAttack.playerId;
-      if (from.armies == 2) {
-        _broadcast(new Move()
-            ..playerId = game.lastAttack.playerId
-            ..from = from
-            ..to = to
-            ..armies = 1);
-      }
-    }
-  }
-
-  void onMove(Move event) {
+  void onMove(MoveArmy event) {
     if (event.playerId != game.activePlayerId) return;
 
     // if the attacked country is owned by another player
@@ -199,56 +230,53 @@ class RiskGameEngine {
         event.to))) return;
 
     // if attack move, countries must be the same as attack
-    if (game.step == null && (event.from != game.lastAttack.from || event.to !=
-        game.lastAttack.to)) return;
+    if (turnStep == TURN_STEP_ATTACK && (event.from !=
+        lastBattle.attacker.country || event.to != lastBattle.defender.country)) return;
 
-    game.lastAttack = null;
+    _broadcast(new ArmyMoved()
+        ..playerId = event.playerId
+        ..from = event.from
+        ..to = event.to
+        ..armies = event.armies);
 
-    game.countries[event.from].armies -= event.armies;
-    game.countries[event.to].armies += event.armies;
-
-    if (game.step == 'fortification') {
-      game.step = null;
-      _broadcast(new EndTurn()..playerId = event.playerId);
+    if (turnStep == TURN_STEP_FORTIFICATION) {
+      sendNextPlayer();
     }
   }
 
   void onEndAttack(EndAttack event) {
     if (event.playerId != game.activePlayerId) return;
 
-    game.step = 'fortification';
+    turnStep = TURN_STEP_FORTIFICATION;
   }
 
   void onEndTurn(EndTurn event) {
     if (event.playerId != game.activePlayerId) return;
 
-    final l = game.playersOrder;
-    final index = l.indexOf(game.activePlayerId);
-    final nextIndex = (index + 1) % l.length;
-    final nextActivePlayer = l[nextIndex];
-    sendNextPlayer(nextActivePlayer);
+    sendNextPlayer();
   }
 
-  void onLeaveGame(LeaveGame event) {
-  }
-
-  void sendGameStarted() {
-    _broadcast(new GameStarted()
-        ..armies = START_ARMIES[game.players.length]
-        ..playersOrder = (game.players.keys.toList()..shuffle(random)));
-  }
-
-  void sendNextPlayer(nextPlayerId) {
+  void sendNextPlayer() {
+    var orders = game.playersOrder;
+    int nextPlayerIndex = game.activePlayerId == null ? 0 : orders.indexOf(
+        game.activePlayerId) + 1;
+    int nextPlayerId = orders[nextPlayerIndex % orders.length];
     //TODO compute reinforcement
-    int reinforcement = 3;
+    int reinforcement = setupPhase ? game.players[nextPlayerId].reinforcement :
+        3;
+
+    turnStep = TURN_STEP_REINFORCEMENT;
+
     _broadcast(new NextPlayer()
         ..playerId = nextPlayerId
         ..reinforcement = reinforcement);
   }
 
-  _broadcast(event) {
-    if (outSink == null) return;
-    outSink.add(event);
-    handle(event);
+  _broadcast(EngineEvent event) {
+    game.update(event);
+    history.add(event);
+    if (outSink != null) {
+      outSink.add(event);
+    }
   }
 }

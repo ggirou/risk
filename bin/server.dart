@@ -20,10 +20,13 @@ main() {
           ..jailRoot = false
           ..allowDirectoryListing = true
           ..directoryHandler = directoryHandler;
-      final riskServer = new RiskWsServer();
+      var riskServer = new RiskWsServer();
       server.listen((HttpRequest req) {
         if (req.uri.path == '/ws') {
           WebSocketTransformer.upgrade(req).then(riskServer.handleWebSocket);
+        } else if (req.uri.path == '/new') {
+          riskServer = new RiskWsServer();
+          req.response.redirect(req.uri.resolve('/'));
         } else {
           vDir.serveRequest(req);
         }
@@ -37,87 +40,51 @@ void directoryHandler(dir, request) {
   vDir.serveFile(new File(indexUri.toFilePath()), request);
 }
 
-abstract class RiskWsServer {
-  factory RiskWsServer() => new _RiskWsServer();
-
-  handleWebSocket(event);
-}
-
-class _RiskWsServer implements RiskWsServer {
+class RiskWsServer {
   final Map<int, WebSocket> _clients = {};
-  final RiskGameEngine game;
-  final List _eventsHistory = [];
+  final RiskGameEngine engine;
 
-  final StreamController _eventController;
+  final StreamController outputStream;
   int currentPlayerId = 1;
 
-  _RiskWsServer() : this._(new StreamController.broadcast());
-  _RiskWsServer._(StreamController eventController)
-      : _eventController = eventController,
-        game = new RiskGameEngine.server(eventController) {
-    _eventController.stream.listen(_eventsHistory.add);
-  }
+  RiskWsServer(): this._(new StreamController.broadcast());
+  RiskWsServer._(StreamController eventController)
+      : outputStream = eventController,
+          engine = new RiskGameEngine.server(eventController);
 
   void handleWebSocket(WebSocket ws) {
-    final playerId = currentPlayerId++;
+    final playerId = connectPlayer(ws);
 
-    connectPlayer(playerId, ws);
-
-    ws.map(JSON.decode).map(logEvent("IN", playerId))
-      .map(EVENT.decode)
-      .where((event) => event is PlayerEvent && event.playerId == playerId) // Avoid unknown event and cheater
-      .listen((event) {
-        // store and dispatch
-        storeAndDispatch(event);
-
-        // handle event in game engine
-        game.handle(event);
-
-        // handle Leaves
-        if(event is LeaveGame) {
-          handleLeaveGame(event);
-        }
-      })
-      .onDone(() => connectionLost(playerId)); // Connection is lost
+    // Decode JSON
+    ws.map(JSON.decode)
+    // Log incoming events
+    .map(logEvent("IN", playerId))
+    // Decode events
+    .map(EVENT.decode)
+    // Avoid unknown events and cheaters
+    .where((event) => event is PlayerEvent && event.playerId == playerId)
+    // Handle events in game engine
+    .listen(engine.handle)
+    // Connection closed
+    .onDone(() => print("Player $playerId left"));
   }
 
-  void connectPlayer(int playerId, WebSocket ws) {
-    print("Player $playerId connected");
+  int connectPlayer(WebSocket ws) {
+    int playerId = currentPlayerId++;
 
     _clients[playerId] = ws;
 
     // Concate streams: Welcome event, history events, incoming events
     var stream = new StreamController();
-    stream.add(new Welcome()..playerId= playerId);
-    _eventsHistory.forEach(stream.add);
-    stream.addStream(_eventController.stream);
+    stream.add(new Welcome()..playerId = playerId);
+    engine.history.forEach(stream.add);
+    stream.addStream(outputStream.stream);
+     
+    ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)
+        ).map(JSON.encode));
 
-    ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)).map(JSON.encode));
-  }
-
-  storeAndDispatch(event) {
-    _eventController.add(event);
-    return event;
-  }
-
-  handleLeaveGame(LeaveGame event) {
-    print("Player ${event.playerId} is leaving");
-    removePlayer(event.playerId);
-  }
-
-  connectionLost(int playerId) {
-    print("Connection closed");
-    if(removePlayer(playerId)) {
-      storeAndDispatch(new LeaveGame()..playerId = playerId);
-    }
-  }
-
-  bool removePlayer(int playerId) {
-    var client = _clients.remove(playerId);
-    if (client != null) {
-      client.close();
-    }
-    return client != null;
+    print("Player $playerId connected");
+    return playerId;
   }
 
   logEvent(String direction, int playerId) => (event) {
