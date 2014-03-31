@@ -17,8 +17,10 @@ const TURN_STEP_FORTIFICATION = 'FORTIFICATION';
 class RiskGame {
   Map<String, CountryState> countries = {};
   Map<int, PlayerState> players = {};
-  List<int> playersOrder;
+  List<int> playersOrder = [];
   int activePlayerId;
+
+  bool started = false;
 
   RiskGame();
   RiskGame.fromHistory(List<EngineEvent> events) {
@@ -30,6 +32,7 @@ class RiskGame {
       players[event.playerId] = new PlayerState(event.name, event.avatar,
           event.color);
     } else if (event is GameStarted) {
+      started = true;
       playersOrder = event.playersOrder;
       players.values.forEach((ps) => ps.reinforcement = event.armies);
     } else if (event is ArmyPlaced) {
@@ -63,9 +66,12 @@ class PlayerState {
   PlayerState(this.name, this.avatar, this.color, {this.reinforcement: 0});
 }
 
-int computeLostByAttacker(List<int> attacks, List<int> defends) {
+/**
+ * Computes attacker loss comparing rolled [attacks] and [defends] dices.
+ */
+int computeAttackerLoss(List<int> attacks, List<int> defends) {
   int result = 0;
-  for (int i = 0; i < defends.length; i++) {
+  for (int i = 0; i < min(attacks.length, defends.length); i++) {
     if (attacks[i] <= defends[i]) result++;
   }
   return result;
@@ -80,8 +86,8 @@ class Hazard {
       _random);
 
   /// Rolls [n] dices and returns the result in descending order
-  List<int> rollDices(int n) => (new List<int>.generate(n, (_) => _random.nextInt(6) + 1
-      )..sort()).reversed.toList();
+  List<int> rollDices(int n) => (new List<int>.generate(n, (_) =>
+      _random.nextInt(6) + 1)..sort()).reversed.toList();
 }
 
 class RiskGameEngine {
@@ -89,18 +95,14 @@ class RiskGameEngine {
   final EventSink<EngineEvent> outSink;
   final List<EngineEvent> history = [];
 
-  Hazard hazard = new Hazard();
+  final Hazard hazard;
 
   bool setupPhase = true;
   String turnStep;
   BattleEnded lastBattle;
 
-  // TODO: refactor
-  RiskGameEngine.client({RiskGame game})
-      : this.outSink = null,
-        this.game = game != null ? game : new RiskGame();
-  RiskGameEngine.server(this.outSink, {RiskGame game}): this.game = game != null
-      ? game : new RiskGame();
+  RiskGameEngine(this.outSink, this.game, {Hazard hazard}): hazard = hazard !=
+      null ? hazard : new Hazard();
 
   void handle(PlayerEvent event) {
     if (event is JoinGame) {
@@ -136,6 +138,8 @@ class RiskGameEngine {
 
   void onStartGame(StartGame event) {
     if (event.playerId != game.players.keys.first) return;
+
+    if (game.started) return;
 
     if (game.players.length >= PLAYERS_MIN) {
       sendGameStarted();
@@ -179,11 +183,14 @@ class RiskGameEngine {
     var playerId = event.playerId;
 
     // if another player try to play
-    if (event.playerId != game.activePlayerId) return;
+    if (playerId != game.activePlayerId) return;
+
+    // Attack country must be owned by the active player
+    if (game.countries[event.from].playerId != playerId) return;
 
     var defenderId = game.countries[event.to].playerId;
     // Attacked country must be owned by another player
-    if (defenderId == event.playerId) return;
+    if (defenderId == playerId) return;
 
     // Attacker must have enough armies in the from country
     if (game.countries[event.from].armies <= event.armies) return;
@@ -201,7 +208,7 @@ class RiskGameEngine {
         ..dices = hazard.rollDices(min(2, game.countries[event.to].armies))
         ..country = event.to;
 
-    var attackerLoss = computeLostByAttacker(attacker.dices, defender.dices);
+    var attackerLoss = computeAttackerLoss(attacker.dices, defender.dices);
     var defenderLoss = defender.dices.length - attackerLoss;
 
     attacker.remainingArmies = game.countries[attacker.country].armies -
