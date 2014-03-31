@@ -202,7 +202,7 @@ var events = {
       ..event = (new BattleEnded()
           ..attacker = (new BattleOpponentResult()
               ..playerId = 3
-              ..dices = [1, 2, 3]
+              ..dices = [3, 2, 1]
               ..country = "eastern_australia"
               ..remainingArmies = 2)
           ..defender = (new BattleOpponentResult()
@@ -215,7 +215,7 @@ var events = {
         "data": {
           "attacker": {
             "playerId": 3,
-            "dices": [1, 2, 3],
+            "dices": [3, 2, 1],
             "country": "eastern_australia",
             "remainingArmies": 2
           },

@@ -71,13 +71,16 @@ int computeLostByAttacker(List<int> attacks, List<int> defends) {
   return result;
 }
 
-class Dices {
+/// Hazard of the game
+class Hazard {
   final Random _random = new Random();
 
+  /// Shuffles the [players] order
   List<int> giveOrders(Iterable<int> players) => players.toList()..shuffle(
       _random);
 
-  List<int> roll(n) => (new List<int>.generate(n, (_) => _random.nextInt(6) + 1
+  /// Rolls [n] dices and returns the result in descending order
+  List<int> rollDices(int n) => (new List<int>.generate(n, (_) => _random.nextInt(6) + 1
       )..sort()).reversed.toList();
 }
 
@@ -86,7 +89,7 @@ class RiskGameEngine {
   final EventSink<EngineEvent> outSink;
   final List<EngineEvent> history = [];
 
-  Dices dices = new Dices();
+  Hazard hazard = new Hazard();
 
   bool setupPhase = true;
   String turnStep;
@@ -143,7 +146,7 @@ class RiskGameEngine {
     setupPhase = true;
     _broadcast(new GameStarted()
         ..armies = START_ARMIES[game.players.length]
-        ..playersOrder = dices.giveOrders(game.players.keys));
+        ..playersOrder = hazard.giveOrders(game.players.keys));
     sendNextPlayer();
   }
 
@@ -191,11 +194,11 @@ class RiskGameEngine {
 
     var attacker = new BattleOpponentResult()
         ..playerId = playerId
-        ..dices = dices.roll(event.armies)
+        ..dices = hazard.rollDices(event.armies)
         ..country = event.from;
     var defender = new BattleOpponentResult()
         ..playerId = defenderId
-        ..dices = dices.roll(min(2, game.countries[event.to].armies))
+        ..dices = hazard.rollDices(min(2, game.countries[event.to].armies))
         ..country = event.to;
 
     var attackerLoss = computeLostByAttacker(attacker.dices, defender.dices);

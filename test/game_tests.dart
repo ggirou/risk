@@ -136,7 +136,7 @@ testRiskGame() {
     var event = new BattleEnded()
         ..attacker = (new BattleOpponentResult()
             ..playerId = 1
-            ..dices = [1, 2, 3]
+            ..dices = [3, 2, 1]
             ..country = "western_australia"
             ..remainingArmies = 2)
         ..defender = (new BattleOpponentResult()
@@ -178,15 +178,15 @@ testRiskGame() {
 }
 
 testRiskGameEngine() {
-  DicesMock dices;
+  HazardMock hazard;
   StreamController outputStream;
   RiskGameEngine engine;
 
   setUp(() {
-    dices = new DicesMock();
+    hazard = new HazardMock();
     outputStream = new StreamController(sync: true);
-    engine = new RiskGameEngine.server(outputStream, game: riskGame())..dices =
-        dices;
+    engine = new RiskGameEngine.server(outputStream, game: riskGame())..hazard =
+        hazard;
   });
 
   var eventsList = () {
@@ -430,8 +430,8 @@ class PlayerStateEquality implements Equality<PlayerState> {
   bool isValidKey(Object o) => o is PlayerState;
 }
 
-class DicesMock extends Mock implements Dices {
+class HazardMock extends Mock implements Hazard {
   List<int> giveOrders(Iterable<int> players) => players.toList(
       ).reversed.toList();
-  List<int> roll(n) => null;
+  List<int> rollDices(n) => null;
 }
