@@ -4,11 +4,13 @@ import 'dart:async';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/mock.dart';
 import 'package:risk/game.dart';
+import 'package:risk/map.dart';
 import 'package:risk/event.dart';
 import 'utils.dart';
 
 main() {
   group('Dices attack computation', testDicesAttackComputation);
+  group('Reinforcement computation', testReinforcementComputation);
   group('RiskGame', testRiskGame);
   group('RiskGameEngine', testRiskGameEngine);
 }
@@ -40,11 +42,79 @@ testDicesAttackComputation() {
   });
 }
 
+testReinforcementComputation() {
+  final playerId = 1;
+  buildGame(Iterable<String> countries) {
+    RiskGame game = new RiskGame();
+    countries.forEach((c) => game.countries[c] = new CountryState(c, playerId:
+        playerId, armies: 1));
+    return game;
+  }
+
+  test('for one country', () {
+    var countries = ["eastern_australia"];
+    var expected = 3;
+    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+        ));
+  });
+
+  test('for 4 countries', () {
+    var countries = ["eastern_australia", "congo", "egypt", "east_africa"];
+    var expected = 3;
+    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+        ));
+  });
+
+  test('for 13 countries', () {
+    var countries = ["eastern_australia", "brazil", "congo", "egypt",
+        "east_africa", "alberta", "central_america", "eastern_united_states",
+        "greenland", "northwest_territory", "ontario", "quebec",
+        "western_united_states"];
+    var expected = 4;
+    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+        ));
+  });
+
+  test('for Australia', () {
+    var countries = 
+        CONTINENTS.firstWhere((c) => c.id == 'australia').countries;
+    // 4 countries + 2
+    var expected = 3;
+    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+        ));
+  });
+
+  test('for North america + 3 other countries', () {
+    var countries = ["congo", "egypt", "east_africa"]..addAll(
+        CONTINENTS.firstWhere((c) => c.id == 'north_america').countries);
+    // 12 countries + Noth america bonus
+    var expected = (12 / 3) + (5);
+    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+        ));
+  });
+
+  test('for All countries and continents', () {
+    var countries = COUNTRIES.keys;
+    // 42 countries + all continents bonus
+    var expected = (42 / 3) + (2 + 5 + 2 + 3 + 5 + 7);
+    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+        ));
+  });
+}
+
 testRiskGame() {
   RiskGame game;
 
   setUp(() {
     game = riskGameInGame();
+  });
+
+  test('should get countries owned by players', () {
+    expect(game.playerCountries(1), unorderedEquals(["western_australia",
+        "new_guinea"]));
+    expect(game.playerCountries(2), unorderedEquals(["siam", "great_britain",
+        "indonesia"]));
+    expect(game.playerCountries(42), equals(new Set()));
   });
 
   test('on PlayerJoined should add a player', () {
@@ -97,7 +167,8 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameInGame();
-    expected.countries["eastern_australia"] = new CountryState(0, 1);
+    expected.countries["eastern_australia"] = new CountryState(
+        "eastern_australia", playerId: 0, armies: 1);
     expected.players[0].reinforcement--;
 
     expectEquals(game, expected);
@@ -345,7 +416,8 @@ testRiskGameEngine() {
 
       // THEN
       var expected = riskGameInGame();
-      expected.countries["eastern_australia"] = new CountryState(1, 1);
+      expected.countries["eastern_australia"] = new CountryState(
+          "eastern_australia", playerId: 1, armies: 1);
       expected.players[1].reinforcement--;
 
       expectEquals(expected, engine.game);
@@ -483,11 +555,13 @@ riskGameInGame() => new RiskGame()
       2: playerState(reinforcement: 0),
     }
     ..countries = {
-      "western_australia": new CountryState(1, 4),
-      "new_guinea": new CountryState(1, 3),
-      "indonesia": new CountryState(2, 2),
-      "siam": new CountryState(2, 4),
-      "great_britain": new CountryState(2, 4),
+      "western_australia": new CountryState("western_australia", playerId: 1,
+          armies: 4),
+      "new_guinea": new CountryState("new_guinea", playerId: 1, armies: 3),
+      "indonesia": new CountryState("indonesia", playerId: 2, armies: 2),
+      "siam": new CountryState("siam", playerId: 2, armies: 4),
+      "great_britain": new CountryState("great_britain", playerId: 2, armies: 4
+          ),
     }
     ..started = true
     ..activePlayerId = 1
