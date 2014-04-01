@@ -88,7 +88,7 @@ testReinforcementComputation() {
     var countries = ["congo", "egypt", "east_africa"]..addAll(
         CONTINENTS.firstWhere((c) => c.id == 'north_america').countries);
     // 12 countries + Noth america bonus
-    var expected = (12 / 3) + (5);
+    var expected = (12 ~/ 3) + (5);
     expect(computeReinforcement(buildGame(countries), playerId), equals(expected
         ));
   });
@@ -96,7 +96,7 @@ testReinforcementComputation() {
   test('for All countries and continents', () {
     var countries = COUNTRIES.keys;
     // 42 countries + all continents bonus
-    var expected = (42 / 3) + (2 + 5 + 2 + 3 + 5 + 7);
+    var expected = (42 ~/ 3) + (2 + 5 + 2 + 3 + 5 + 7);
     expect(computeReinforcement(buildGame(countries), playerId), equals(expected
         ));
   });

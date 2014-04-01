@@ -83,12 +83,18 @@ int computeAttackerLoss(List<int> attacks, List<int> defends) {
   return result;
 }
 
+/**
+ * Computes reinforcement for a [playerId] int the [game].
+ * Reinforcement = (Number of countries player owns) / 3 + (Continent bonus)
+ * Continent bonus is added if player owns all the countries of a continent.
+ * If reinforcement is less than three, round up to three.
+ */
 int computeReinforcement(RiskGame game, int playerId) {
   var playerCountries = game.playerCountries(playerId);
   var continents = CONTINENTS.where((c) => c.countries.every(
       playerCountries.contains));
   var bonus = continents.map((c) => c.bonus).fold(0, (a, b) => a + b);
-  return max(3, (playerCountries.length / 3).floor() + bonus);
+  return max(3, playerCountries.length ~/ 3 + bonus);
 }
 
 /// Hazard of the game
@@ -281,8 +287,8 @@ class RiskGameEngine {
         game.activePlayerId) + 1;
     int nextPlayerId = orders[nextPlayerIndex % orders.length];
     int reinforcement = setupPhase ? game.players[nextPlayerId].reinforcement :
-      // TODO: tests
-        computeReinforcement(game, nextPlayerId);
+        // TODO: tests
+    computeReinforcement(game, nextPlayerId);
 
     turnStep = TURN_STEP_REINFORCEMENT;
 
