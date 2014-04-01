@@ -50,7 +50,7 @@ class RiskWsServer {
   RiskWsServer(): this._(new StreamController.broadcast());
   RiskWsServer._(StreamController eventController)
       : outputStream = eventController,
-          engine = new RiskGameEngine.server(eventController);
+          engine = new RiskGameEngine(eventController, new RiskGame());
 
   void handleWebSocket(WebSocket ws) {
     final playerId = connectPlayer(ws);
