@@ -115,8 +115,11 @@ class NextPlayer implements EngineEvent {
   int reinforcement;
 }
 
-////// sent by the engine when setup phase is ended
-//class SetupEnded implements EngineEvent {}
+/// sent by the engine when setup phase is ended
+class SetupEnded implements EngineEvent {}
+
+/// sent by the engine when turn step changed to the following
+class NextStep implements EngineEvent {}
 
 /// sent by engine the result of battle
 class BattleEnded implements EngineEvent {
@@ -124,6 +127,8 @@ class BattleEnded implements EngineEvent {
   BattleOpponentResult attacker;
   /// Result of the battle for the defender
   BattleOpponentResult defender;
+  /// True if the country is conquered
+  bool conquered;
 }
 
 /// Battle result for one opponent
@@ -179,6 +184,8 @@ class EventDecoder extends Converter<Map, Object> {
     "GameStarted": GameStarted,
     "ArmyPlaced": ArmyPlaced,
     "NextPlayer": NextPlayer,
+    "SetupEnded": SetupEnded,
+    "NextStep": NextStep,
     "BattleEnded": BattleEnded,
     "ArmyMoved": ArmyMoved,
   };

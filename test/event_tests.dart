@@ -198,6 +198,24 @@ var events = {
         expect(output.reinforcement, equals(event.reinforcement));
       },
 
+  "SetupEnded": new SerializableTest()
+      ..event = new SetupEnded()
+      ..json = {
+        "event": "SetupEnded",
+        "data": {},
+      }
+      ..expectation = (SetupEnded event, SetupEnded output) {
+      },
+
+  "NextStep": new SerializableTest()
+      ..event = new NextStep()
+      ..json = {
+        "event": "NextStep",
+        "data": {},
+      }
+      ..expectation = (NextStep event, NextStep output) {
+      },
+
   "BattleEnded": new SerializableTest()
       ..event = (new BattleEnded()
           ..attacker = (new BattleOpponentResult()
@@ -209,7 +227,8 @@ var events = {
               ..playerId = 2
               ..dices = [6, 5]
               ..country = "western_australia"
-              ..remainingArmies = 1))
+              ..remainingArmies = 1)
+          ..conquered = true)
       ..json = {
         "event": "BattleEnded",
         "data": {
@@ -224,18 +243,21 @@ var events = {
             "dices": [6, 5],
             "country": "western_australia",
             "remainingArmies": 1
-          }
+          },
+          "conquered": true
         },
       }
       ..expectation = (BattleEnded event, BattleEnded output) {
         expect(output.attacker.playerId, equals(event.attacker.playerId));
         expect(output.attacker.dices, equals(event.attacker.dices));
         expect(output.attacker.country, equals(event.attacker.country));
-        expect(output.attacker.remainingArmies, equals(event.attacker.remainingArmies));
+        expect(output.attacker.remainingArmies, equals(
+            event.attacker.remainingArmies));
         expect(output.defender.playerId, equals(event.defender.playerId));
         expect(output.defender.dices, equals(event.defender.dices));
         expect(output.defender.country, equals(event.defender.country));
-        expect(output.defender.remainingArmies, equals(event.defender.remainingArmies));
+        expect(output.defender.remainingArmies, equals(
+            event.defender.remainingArmies));
       },
 
   "ArmyMoved": new SerializableTest()
