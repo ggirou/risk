@@ -288,8 +288,7 @@ testRiskGame() {
             ..dices = [6, 5]
             ..country = "indonesia"
             ..remainingArmies = 1)
-        ..conquered = false
-        ..minArmiesToMove = 3;
+        ..conquered = false;
 
     // WHEN
     game.update(event);
@@ -316,8 +315,7 @@ testRiskGame() {
             ..dices = [1, 1]
             ..country = "siam"
             ..remainingArmies = 0)
-        ..conquered = true
-        ..minArmiesToMove = 3;
+        ..conquered = true;
 
     // WHEN
     game.update(event);

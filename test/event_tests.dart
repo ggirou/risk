@@ -228,8 +228,7 @@ var events = {
               ..dices = [6, 5]
               ..country = "western_australia"
               ..remainingArmies = 1)
-          ..conquered = true
-          ..minArmiesToMove = 2)
+          ..conquered = true)
       ..json = {
         "event": "BattleEnded",
         "data": {
@@ -245,8 +244,7 @@ var events = {
             "country": "western_australia",
             "remainingArmies": 1
           },
-          "conquered": true,
-          "minArmiesToMove": 2
+          "conquered": true
         },
       }
       ..expectation = (BattleEnded event, BattleEnded output) {

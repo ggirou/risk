@@ -129,8 +129,6 @@ class BattleEnded implements EngineEvent {
   BattleOpponentResult defender;
   /// True if the country is conquered
   bool conquered;
-  /// Minimum number of armies to move if the country is conquered
-  int minArmiesToMove;
 }
 
 /// Battle result for one opponent

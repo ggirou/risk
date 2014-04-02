@@ -250,8 +250,7 @@ class RiskGameEngine {
     lastBattle = new BattleEnded()
         ..attacker = attacker
         ..defender = defender
-        ..conquered = defender.remainingArmies == 0
-        ..minArmiesToMove = event.armies;
+        ..conquered = defender.remainingArmies == 0;
 
     _broadcast(lastBattle);
   }
