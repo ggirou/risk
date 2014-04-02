@@ -10,63 +10,78 @@ import 'game.dart';
 bool autoSetup = new String.fromEnvironment('autoSetup', defaultValue: 'true')
     == 'true';
 
+class EngineException {
+  final message;
+  EngineException(this.message);
+  String toString() => "EngineException: $message";
+}
+
 class RiskGameEngine {
   final RiskGame game;
-  final EventSink<EngineEvent> outSink;
+  final EventSink<EngineEvent> outputStream;
   final List<EngineEvent> history = [];
 
   final Hazard hazard;
+  final Function exceptionHandler;
 
   BattleEnded lastBattle;
 
-  RiskGameEngine(this.outSink, this.game, {Hazard hazard}): hazard = hazard !=
-      null ? hazard : new Hazard();
+  RiskGameEngine(this.outputStream, this.game, {Hazard
+      hazard, this.exceptionHandler: print}): hazard = hazard != null ? hazard :
+      new Hazard();
 
   void handle(PlayerEvent event) {
-    if (event is JoinGame) {
-      onJoinGame(event);
-    } else if (event is StartGame) {
-      onStartGame(event);
-    } else if (event is PlaceArmy) {
-      onPlaceArmy(event);
-    } else if (event is Attack) {
-      onAttack(event);
-    } else if (event is EndAttack) {
-      onEndAttack(event);
-    } else if (event is MoveArmy) {
-      onMove(event);
-    } else if (event is EndTurn) {
-      onEndTurn(event);
+    try {
+      if (event is JoinGame) {
+        onJoinGame(event);
+      } else if (event is StartGame) {
+        onStartGame(event);
+      } else if (event is PlaceArmy) {
+        onPlaceArmy(event);
+      } else if (event is Attack) {
+        onAttack(event);
+      } else if (event is EndAttack) {
+        onEndAttack(event);
+      } else if (event is MoveArmy) {
+        onMove(event);
+      } else if (event is EndTurn) {
+        onEndTurn(event);
+      }
+    } catch (e) {
+      exceptionHandler(e);
     }
   }
 
   void onJoinGame(JoinGame event) {
-    if (game.players.containsKey(event.playerId)) return;
-    if (game.started) return;
+    // Check if the player has already joined the game
+    checkPlayerExists(event.playerId, notExist: true);
+    // Checks if it the game is not started.
+    checkGameNotStarted();
 
-    _broadcast(new PlayerJoined()
+    _publish(new PlayerJoined()
         ..playerId = event.playerId
         ..name = event.name
         ..avatar = event.avatar
         ..color = event.color);
 
     if (game.players.length == PLAYERS_MAX) {
-      sendGameStarted();
+      startGame();
     }
   }
 
   void onStartGame(StartGame event) {
-    if (event.playerId != game.players.keys.first) return;
-
-    if (game.started) return;
+    // Only the first connected player can start the game
+    checkFirstPlayer(event.playerId);
+    // Checks if it the game is already started.
+    checkGameNotStarted();
 
     if (game.players.length >= PLAYERS_MIN) {
-      sendGameStarted();
+      startGame();
     }
   }
 
-  void sendGameStarted() {
-    _broadcast(new GameStarted()
+  void startGame() {
+    _publish(new GameStarted()
         ..armies = START_ARMIES[game.players.length]
         ..playersOrder = hazard.giveOrders(game.players.keys));
 
@@ -75,7 +90,7 @@ class RiskGameEngine {
     final countries = {};
     int i = 0;
     game.players.keys.forEach((playerId) {
-      groupsOfCountries[i++].forEach((c) => _broadcast(new ArmyPlaced()
+      groupsOfCountries[i++].forEach((c) => _publish(new ArmyPlaced()
           ..playerId = playerId
           ..country = c));
     });
@@ -87,68 +102,58 @@ class RiskGameEngine {
             playerState.playerId).map((cs) => cs.countryId).toList();
         while (playerState.reinforcement > 0) {
           final country = (myCountries..shuffle()).first;
-          _broadcast(new ArmyPlaced()
+          _publish(new ArmyPlaced()
               ..playerId = playerState.playerId
               ..country = country);
         }
       });
-      _broadcast(new SetupEnded());
+      _publish(new SetupEnded());
     }
 
     // next
-    sendNextPlayer();
+    nextPlayer();
   }
 
   void onPlaceArmy(PlaceArmy event) {
-    var playerId = event.playerId;
+    // if another player tries to play
+    checkActivePlayer(event.playerId);
+    // Check if player as not enough armies
+    checkPlayerHasReinforcement(event.playerId);
+    // Check if country is owned by another player
+    checkCountryOwner(event.country, event.playerId);
 
-    // if another player try to play
-    if (playerId != game.activePlayerId) return;
-
-    // if player as not enough armies
-    if (game.players[playerId].reinforcement == 0) return;
-
-    // if country is owned by another player
-    var countryState = game.countries[event.country];
-    if (countryState != null && countryState.playerId != playerId) return;
-
-    _broadcast(new ArmyPlaced()
-        ..playerId = playerId
+    _publish(new ArmyPlaced()
+        ..playerId = event.playerId
         ..country = event.country);
 
     if (game.setupPhase) {
       if (game.players.values.every((ps) => ps.reinforcement == 0)) {
-        _broadcast(new SetupEnded());
+        _publish(new SetupEnded());
       }
-      sendNextPlayer();
-    } else if (game.players[playerId].reinforcement == 0) {
-      _broadcast(new NextStep());
+      nextPlayer();
+    } else if (game.players[event.playerId].reinforcement == 0) {
+      _publish(new NextStep());
     }
   }
 
   void onAttack(Attack event) {
-    var playerId = event.playerId;
-
-    // if another player try to play
-    if (playerId != game.activePlayerId) return;
-
-    // Attack country must be owned by the active player
-    if (game.countries[event.from].playerId != playerId) return;
+    // if another player tries to play
+    checkActivePlayer(event.playerId);
+    // Armies should be between 1 and 3
+    checkArmiesNumber(event.armies, max: 3);
+    // Check if from country is owned by the player
+    checkCountryOwner(event.from, event.playerId);
+    // Check if target country is owned by another player
+    checkCountryOwner(event.to, event.playerId, notOwned: true);
+    // The attacked country must be in the neighbourhood
+    checkCountryNeighbourhood(event.from, event.to);
+    // Attacker must have enough armies in the from country
+    checkNeededArmiesFrom(event.from, event.armies);
 
     var defenderId = game.countries[event.to].playerId;
-    // Attacked country must be owned by another player
-    if (defenderId == playerId) return;
-
-    // Attacker must have enough armies in the from country
-    if (game.countries[event.from].armies <= event.armies) return;
-
-    // TODO: check maximum number of armies
-
-    // The attacked country must be in the neighbourhood
-    if (!COUNTRIES[event.from].neighbours.contains(event.to)) return;
 
     var attacker = new BattleOpponentResult()
-        ..playerId = playerId
+        ..playerId = event.playerId
         ..dices = hazard.rollDices(event.armies)
         ..country = event.from;
     var defender = new BattleOpponentResult()
@@ -169,71 +174,164 @@ class RiskGameEngine {
         ..defender = defender
         ..conquered = defender.remainingArmies == 0;
 
-    _broadcast(lastBattle);
+    _publish(lastBattle);
   }
 
   void onMove(MoveArmy event) {
-    if (event.playerId != game.activePlayerId) return;
+    // if another player tries to play
+    checkActivePlayer(event.playerId);
+    // Armies should be at least 1
+    checkArmiesNumber(event.armies, action: 'move');
+    // Check if from country is owned by the player
+    checkCountryOwner(event.from, event.playerId);
+    // Check if target country is owned by the player
+    checkCountryOwner(event.to, event.playerId);
+    // The attacked country must be in the neighbourhood
+    checkCountryNeighbourhood(event.from, event.to);
+    // It must have enough armies in the from country
+    checkNeededArmiesFrom(event.from, event.armies);
+    if (game.turnStep == TURN_STEP_ATTACK) {
+      // Countries must be the same as last attack
+      checkLastAttackCountries(event.from, event.to);
+    }
 
-    // if the attacked country is owned by another player
-    if (game.countries[event.to].playerId != event.playerId) return;
-
-    // if the attacker has enough armies in the from country
-    if (game.countries[event.from].armies - event.armies < 1) return;
-
-    // if the attacked country is in the neighbourhood
-    if (!COUNTRIES[event.from].neighbours.contains(event.to)) return;
-
-    // if attack move, countries must be the same as attack
-    if (game.turnStep == TURN_STEP_ATTACK && (event.from !=
-        lastBattle.attacker.country || event.to != lastBattle.defender.country)) return;
-
-    _broadcast(new ArmyMoved()
+    _publish(new ArmyMoved()
         ..playerId = event.playerId
         ..from = event.from
         ..to = event.to
         ..armies = event.armies);
 
     if (game.turnStep == TURN_STEP_FORTIFICATION) {
-      // TODO: test
-      sendNextPlayer();
+      nextPlayer();
     }
   }
 
   void onEndAttack(EndAttack event) {
-    if (event.playerId != game.activePlayerId) return;
+    // if another player tries to play
+    checkActivePlayer(event.playerId);
 
     // TODO: check current step
 
-    _broadcast(new NextStep());
+    _publish(new NextStep());
   }
 
   void onEndTurn(EndTurn event) {
-    if (event.playerId != game.activePlayerId) return;
+    // if another player tries to play
+    checkActivePlayer(event.playerId);
 
-    sendNextPlayer();
+    // TODO: check current step
+
+    nextPlayer();
   }
 
-  void sendNextPlayer() {
+  void nextPlayer() {
     var orders = game.playersOrder;
     int nextPlayerIndex = game.activePlayerId == null ? 0 : orders.indexOf(
         game.activePlayerId) + 1;
     int nextPlayerId = orders[nextPlayerIndex % orders.length];
     int reinforcement = game.setupPhase ?
-        game.players[nextPlayerId].reinforcement : // TODO: tests
-    computeReinforcement(game, nextPlayerId);
+        game.players[nextPlayerId].reinforcement : computeReinforcement(game,
+        nextPlayerId);
 
-    _broadcast(new NextPlayer()
+    _publish(new NextPlayer()
         ..playerId = nextPlayerId
         ..reinforcement = reinforcement);
   }
 
-  _broadcast(EngineEvent event) {
+  _publish(EngineEvent event) {
     game.update(event);
     history.add(event);
-    if (outSink != null) {
-      outSink.add(event);
+    if (outputStream != null) {
+      outputStream.add(event);
     }
+  }
+
+  /**
+   * Checks if the player exists.
+   * If [notExist] is [true] Checks if the player has already joined the game.
+   */
+  checkPlayerExists(int playerId, {notExist: false}) {
+    if (game.players.containsKey(playerId) == notExist) throw
+        new EngineException(
+        "Player #$playerId is ${notExist ? 'already' : 'not'} registered");
+  }
+
+  /// Checks if another player tries to play.
+  checkActivePlayer(int playerId) {
+    checkPlayerExists(playerId);
+    if (playerId != game.activePlayerId) throw new EngineException(
+        "Player #$playerId is not the active player");
+  }
+
+  /// Checks if it is the first connected player.
+  checkFirstPlayer(int playerId) {
+    checkPlayerExists(playerId);
+    if (playerId != game.players.keys.first) throw new EngineException(
+        "Player #$playerId is not the first connected player");
+  }
+
+  /// Checks if it the game is already started.
+  checkGameNotStarted() {
+    if (game.started) throw new EngineException("Game is already started");
+  }
+
+  /// Checks if the player has reinforcement.
+  checkPlayerHasReinforcement(int playerId) {
+    checkPlayerExists(playerId);
+    if (game.players[playerId].reinforcement == 0) throw new EngineException(
+        "Player #$playerId hasn't reinforcement armies");
+  }
+
+  /// Checks if the country exists.
+  checkCountryExists(String countryId) {
+    if (!COUNTRIES.containsKey(countryId)) throw new EngineException(
+        "Country #$countryId doesn't exist");
+  }
+
+  /// Checks if countries are neighbours.
+  checkCountryNeighbourhood(String countryAId, String countryBId) {
+    checkCountryExists(countryAId);
+    checkCountryExists(countryBId);
+    if (!COUNTRIES[countryAId].neighbours.contains(countryBId)) throw
+        new EngineException(
+        "Country #$countryAId is not in neighbourhood of #$countryBId");
+  }
+
+  /**
+   * Checks if the [countryId] is owned by the [playerId] or neutral.
+   * If [notOwned] is [true] Checks if the [countryId] is not owned by the [playerId].
+   */
+  checkCountryOwner(String countryId, int playerId, {bool notOwned: false}) {
+    checkCountryExists(countryId);
+    var countryState = game.countries[countryId];
+    if ((countryState == null || countryState.playerId == playerId) == notOwned)
+        throw new EngineException(
+        "Country #$countryId is ${notOwned ? '' : 'not '}owned by player #$playerId");
+  }
+
+  /// Checks the number of armies bounds
+  checkArmiesNumber(int armies, {int min: 1, int max: null, String action:
+      'attack'}) {
+    if (min != null && armies < min) throw new EngineException(
+        "Can't $action with less than $min armies");
+    if (max != null && armies > max) throw new EngineException(
+        "Can't $action with more than $max armies");
+  }
+
+  /// Checks if there is enough armies in country to attack or to move
+  checkNeededArmiesFrom(String countryId, int armies) {
+    checkCountryExists(countryId);
+    if (game.countries[countryId].armies - armies < 1) throw
+        new EngineException("There is not enough armies in country #${countryId}");
+  }
+
+  /// Checks if countries are the same as the last attack
+  checkLastAttackCountries(String from, String to) {
+    if (lastBattle == null) throw new EngineException(
+        "Engaged armies are already moved");
+    if (from != lastBattle.attacker.country || to !=
+        lastBattle.defender.country) throw new EngineException(
+        "Countries doesn't match with the last battle");
   }
 }
 

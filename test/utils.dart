@@ -46,7 +46,7 @@ RiskGame riskGameSetuping() => new RiskGame()
     ..activePlayerId = 2
     ..playersOrder = [1, 2, 0];
 
-RiskGame riskGameInGame() => riskGameSetuping()
+RiskGame riskGameReinforcement() => riskGameSetuping()
     ..players = {
       0: playerState(reinforcement: 0),
       1: playerState(reinforcement: 5),
@@ -55,4 +55,17 @@ RiskGame riskGameInGame() => riskGameSetuping()
     ..setupPhase = false
     ..turnStep = TURN_STEP_REINFORCEMENT
     ..activePlayerId = 1;
+
+
+RiskGame riskGameAttacking() => riskGameReinforcement()
+    ..players = {
+      0: playerState(reinforcement: 0),
+      1: playerState(reinforcement: 0),
+      2: playerState(reinforcement: 0),
+    }
+    ..turnStep = TURN_STEP_ATTACK;
+
+
+RiskGame riskGameFortification() => riskGameAttacking()
+    ..turnStep = TURN_STEP_FORTIFICATION;
 
