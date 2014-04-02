@@ -45,6 +45,7 @@ class RiskGame {
     } else if (event is NextPlayer) {
       activePlayerId = event.playerId;
       players[event.playerId].reinforcement = event.reinforcement;
+      turnStep = TURN_STEP_REINFORCEMENT;
     } else if (event is SetupEnded) {
       setupPhase = false;
     } else if (event is NextStep) {
@@ -53,7 +54,9 @@ class RiskGame {
     } else if (event is BattleEnded) {
       countries[event.attacker.country].armies = event.attacker.remainingArmies;
       countries[event.defender.country].armies = event.defender.remainingArmies;
-      // TODO: CountryConquered
+      if(event.conquered) {
+        countries[event.defender.country].playerId = event.attacker.playerId;
+      }
     } else if (event is ArmyMoved) {
       countries[event.from].armies -= event.armies;
       countries[event.to].armies += event.armies;
@@ -221,6 +224,8 @@ class RiskGameEngine {
 
     // Attacker must have enough armies in the from country
     if (game.countries[event.from].armies <= event.armies) return;
+    
+    // TODO: check maximum number of armies
 
     // The attacked country must be in the neighbourhood
     if (!COUNTRIES[event.from].neighbours.contains(event.to)) return;
@@ -244,7 +249,9 @@ class RiskGameEngine {
 
     lastBattle = new BattleEnded()
         ..attacker = attacker
-        ..defender = defender;
+        ..defender = defender
+        ..conquered = defender.remainingArmies == 0
+        ..minArmiesToMove = event.armies;
 
     _broadcast(lastBattle);
   }

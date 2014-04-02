@@ -287,7 +287,9 @@ testRiskGame() {
             ..playerId = 2
             ..dices = [6, 5]
             ..country = "indonesia"
-            ..remainingArmies = 1);
+            ..remainingArmies = 1)
+        ..conquered = false
+        ..minArmiesToMove = 3;
 
     // WHEN
     game.update(event);
@@ -296,6 +298,35 @@ testRiskGame() {
     var expected = riskGameInGame();
     expected.countries["western_australia"].armies = 2;
     expected.countries["indonesia"].armies = 1;
+
+    expectEquals(game, expected);
+  });
+
+  test('on BattleEnded and conquered should set remaining armies in countries',
+      () {
+    // GIVEN
+    var event = new BattleEnded()
+        ..attacker = (new BattleOpponentResult()
+            ..playerId = 1
+            ..dices = [3, 2, 1]
+            ..country = "western_australia"
+            ..remainingArmies = 4)
+        ..defender = (new BattleOpponentResult()
+            ..playerId = 2
+            ..dices = [1, 1]
+            ..country = "siam"
+            ..remainingArmies = 0)
+        ..conquered = true
+        ..minArmiesToMove = 3;
+
+    // WHEN
+    game.update(event);
+
+    // THEN
+    var expected = riskGameInGame();
+    expected.countries["western_australia"].armies = 4;
+    expected.countries["siam"].armies = 0;
+    expected.countries["siam"].playerId = 1;
 
     expectEquals(game, expected);
   });
@@ -326,8 +357,8 @@ testRiskGameEngine() {
   StreamController outputStream;
   RiskGameEngine engine;
 
-  RiskGameEngine riskGameEngine(RiskGame game) => new RiskGameEngine(outputStream, game,
-      hazard: hazard);
+  RiskGameEngine riskGameEngine(RiskGame game) => new RiskGameEngine(
+      outputStream, game, hazard: hazard);
 
   setUp(() {
     hazard = new HazardMock();
@@ -404,6 +435,7 @@ testRiskGameEngine() {
       var expected = riskGamePlayerJoining();
       expected.started = true;
       expected.setupPhase = true;
+      expected.turnStep = TURN_STEP_REINFORCEMENT;
       expected.playersOrder = [2, 1, 0];
       expected.activePlayerId = 2;
       expected.players[0].reinforcement = 35;
@@ -490,12 +522,12 @@ testRiskGameEngine() {
         expected.players[1].reinforcement--;
 
         expected.activePlayerId = 2;
+        expected.turnStep = TURN_STEP_REINFORCEMENT;
 
         expectEquals(engine.game, expected);
         return expectEvents([new ArmyPlaced()
               ..playerId = 1
-              ..country = "eastern_australia", new NextPlayer(
-                  )
+              ..country = "eastern_australia", new NextPlayer()
               ..playerId = 2
               ..reinforcement = 10]);
       });
@@ -518,9 +550,11 @@ testRiskGameEngine() {
         var expected = riskGameSetuping();
         expected.countries["eastern_australia"] = new CountryState(
             "eastern_australia", playerId: 2, armies: 1);
-        expected.players[2].reinforcement--;
+
         expected.setupPhase = false;
         expected.activePlayerId = 0;
+        expected.turnStep = TURN_STEP_REINFORCEMENT;
+
         expected.players = {
           0: playerState(reinforcement: 3),
           1: playerState(reinforcement: 0),
@@ -634,9 +668,8 @@ testRiskGameEngine() {
           ..playerId = 1
           ..from = "western_australia"
           ..to = "indonesia"
-          ..armies = 3;
-      hazard.when(callsTo('rollDices')).thenReturn([6, 2, 1]).thenReturn([1, 2]
-          );
+          ..armies = 2;
+      hazard.when(callsTo('rollDices')).thenReturn([6, 1]).thenReturn([2, 1]);
 
       // WHEN
       engine.handle(event);
@@ -649,14 +682,52 @@ testRiskGameEngine() {
       var expectedEvent = new BattleEnded()
           ..attacker = (new BattleOpponentResult()
               ..playerId = 1
-              ..dices = [6, 2, 1]
+              ..dices = [6, 1]
               ..country = "western_australia"
               ..remainingArmies = 3)
           ..defender = (new BattleOpponentResult()
               ..playerId = 2
-              ..dices = [1, 2]
+              ..dices = [2, 1]
               ..country = "indonesia"
-              ..remainingArmies = 1);
+              ..remainingArmies = 1)
+          ..conquered = false
+          ..minArmiesToMove = 2;
+
+      expectEquals(engine.game, expected);
+      return expectEvents([expectedEvent]);
+    });
+
+    test('should result in a BattleEnd with country conquered', () {
+      // GIVEN
+      var event = new Attack()
+          ..playerId = 1
+          ..from = "western_australia"
+          ..to = "indonesia"
+          ..armies = 3;
+      hazard.when(callsTo('rollDices')).thenReturn([6, 3, 1]).thenReturn([2, 1]
+          );
+
+      // WHEN
+      engine.handle(event);
+
+      // THEN
+      var expected = riskGameInGame();
+      expected.countries["indonesia"].armies -= 2;
+      expected.countries["indonesia"].playerId = 1;
+
+      var expectedEvent = new BattleEnded()
+          ..attacker = (new BattleOpponentResult()
+              ..playerId = 1
+              ..dices = [6, 3, 1]
+              ..country = "western_australia"
+              ..remainingArmies = 4)
+          ..defender = (new BattleOpponentResult()
+              ..playerId = 2
+              ..dices = [2, 1]
+              ..country = "indonesia"
+              ..remainingArmies = 0)
+          ..conquered = true
+          ..minArmiesToMove = 3;
 
       expectEquals(engine.game, expected);
       return expectEvents([expectedEvent]);
@@ -696,8 +767,9 @@ testRiskGameEngine() {
   });
 }
 
-PlayerState playerState({name: "John", avatar: "avatar.png", color: "blue", reinforcement:
-    0}) => new PlayerState(name, avatar, color, reinforcement: reinforcement);
+PlayerState playerState({name: "John", avatar: "avatar.png", color:
+    "blue", reinforcement: 0}) => new PlayerState(name, avatar, color,
+    reinforcement: reinforcement);
 
 RiskGame riskGamePlayerJoining() => new RiskGame()..players = {
       0: playerState(),
