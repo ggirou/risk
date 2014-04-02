@@ -39,6 +39,7 @@ class RiskGameEngine {
 
   void onJoinGame(JoinGame event) {
     if (game.players.containsKey(event.playerId)) return;
+    if (game.started) return;
 
     _broadcast(new PlayerJoined()
         ..playerId = event.playerId
@@ -62,9 +63,17 @@ class RiskGameEngine {
   }
 
   void sendGameStarted() {
+    final groupsOfCountries = hazard.split(COUNTRIES.keys, game.players.length);
+    final countries = {};
+    int i = 0;
+    game.players.keys.forEach((playerId) {
+      groupsOfCountries[i++].forEach((e) => countries[e] = playerId);
+    });
+
     _broadcast(new GameStarted()
         ..armies = START_ARMIES[game.players.length]
-        ..playersOrder = hazard.giveOrders(game.players.keys));
+        ..playersOrder = hazard.giveOrders(game.players.keys)
+        ..countries = countries);
     sendNextPlayer();
   }
 
@@ -86,7 +95,7 @@ class RiskGameEngine {
         ..country = event.country);
 
     if (game.setupPhase) {
-      if(game.players.values.every((ps) => ps.reinforcement == 0)) {
+      if (game.players.values.every((ps) => ps.reinforcement == 0)) {
         _broadcast(new SetupEnded());
       }
       sendNextPlayer();
@@ -110,7 +119,7 @@ class RiskGameEngine {
 
     // Attacker must have enough armies in the from country
     if (game.countries[event.from].armies <= event.armies) return;
-    
+
     // TODO: check maximum number of armies
 
     // The attacked country must be in the neighbourhood
@@ -173,7 +182,7 @@ class RiskGameEngine {
     if (event.playerId != game.activePlayerId) return;
 
     // TODO: check current step
-    
+
     _broadcast(new NextStep());
   }
 
@@ -188,8 +197,8 @@ class RiskGameEngine {
     int nextPlayerIndex = game.activePlayerId == null ? 0 : orders.indexOf(
         game.activePlayerId) + 1;
     int nextPlayerId = orders[nextPlayerIndex % orders.length];
-    int reinforcement = game.setupPhase ? game.players[nextPlayerId].reinforcement :
-        // TODO: tests
+    int reinforcement = game.setupPhase ?
+        game.players[nextPlayerId].reinforcement : // TODO: tests
     computeReinforcement(game, nextPlayerId);
 
     _broadcast(new NextPlayer()
@@ -217,4 +226,15 @@ class Hazard {
   /// Rolls [n] dices and returns the result in descending order
   List<int> rollDices(int n) => (new List<int>.generate(n, (_) =>
       _random.nextInt(6) + 1)..sort()).reversed.toList();
+
+  /// Split a list into [n] part with random elements
+  // TODO test
+  List<List> split(Iterable elements, int n) {
+    final l = elements.toList()..shuffle(_random);
+    final result = new List.generate(n, (i) => []);
+    for (int i = 0; i < l.length; i++) {
+      result[i % n].add(l[i]);
+    }
+    return result;
+  }
 }

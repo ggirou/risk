@@ -127,8 +127,8 @@ testRiskGame() {
 
     // THEN
     var expected = riskGamePlayerJoining();
-    expected.players[123] = new PlayerState("John Lennon", "kadhafi.png", "red"
-        );
+    expected.players[123] = new PlayerState(123, "John Lennon", "kadhafi.png",
+        "red");
 
     expectEquals(game, expected);
   });
@@ -138,7 +138,8 @@ testRiskGame() {
     game = riskGamePlayerJoining();
     var event = new GameStarted()
         ..playersOrder = [2, 1, 0]
-        ..armies = 42;
+        ..armies = 42
+        ..countries= {};
 
     // WHEN
     game.update(event);

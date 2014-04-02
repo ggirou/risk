@@ -16,8 +16,8 @@ void expectEquals(actual, expected, {String reason, FailureHandler
 }
 
 // TODO: comments
-PlayerState playerState({name: "John", avatar: "avatar.png", color:
-    "blue", reinforcement: 0}) => new PlayerState(name, avatar, color,
+PlayerState playerState({playerId: 123, name: "John", avatar: "avatar.png", color:
+    "blue", reinforcement: 0}) => new PlayerState(playerId, name, avatar, color,
     reinforcement: reinforcement);
 
 RiskGame riskGamePlayerJoining() => new RiskGame()..players = {

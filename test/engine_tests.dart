@@ -50,7 +50,7 @@ testRiskGameEngine() {
 
       // THEN
       var expected = riskGamePlayerJoining();
-      expected.players[123] = new PlayerState("John Lennon", "kadhafi.png",
+      expected.players[123] = new PlayerState(123, "John Lennon", "kadhafi.png",
           "red");
 
       expectEquals(engine.game, expected);
@@ -105,7 +105,8 @@ testRiskGameEngine() {
       expectEquals(engine.game, expected);
       return expectEvents([new GameStarted()
             ..armies = 35
-            ..playersOrder = [2, 1, 0], new NextPlayer()
+            ..playersOrder = [2, 1, 0]
+            ..countries = {}, new NextPlayer()
             ..playerId = 2
             ..reinforcement = 35]);
     });
@@ -428,4 +429,6 @@ testRiskGameEngine() {
 class HazardMock extends Mock implements Hazard {
   List<int> giveOrders(Iterable<int> players) => players.toList(
       ).reversed.toList();
+
+  List<List> split(Iterable elements, int n) => new List.generate(n, (_) => []);
 }

@@ -30,13 +30,16 @@ class RiskGame {
 
   void update(EngineEvent event) {
     if (event is PlayerJoined) {
-      players[event.playerId] = new PlayerState(event.name, event.avatar,
-          event.color);
+      players[event.playerId] = new PlayerState(event.playerId, event.name,
+          event.avatar, event.color);
     } else if (event is GameStarted) {
       started = true;
       setupPhase = true;
       playersOrder = event.playersOrder;
       players.values.forEach((ps) => ps.reinforcement = event.armies);
+      countries.addAll(new Map<String, CountryState>.fromIterable(
+          event.countries.keys, value: (c) => new CountryState(c, playerId:
+          event.countries[c], armies: 1)));
     } else if (event is ArmyPlaced) {
       countries.putIfAbsent(event.country, () => new CountryState(event.country,
           playerId: event.playerId)).armies++;
@@ -53,7 +56,7 @@ class RiskGame {
     } else if (event is BattleEnded) {
       countries[event.attacker.country].armies = event.attacker.remainingArmies;
       countries[event.defender.country].armies = event.defender.remainingArmies;
-      if(event.conquered) {
+      if (event.conquered) {
         countries[event.defender.country].playerId = event.attacker.playerId;
       }
     } else if (event is ArmyMoved) {
@@ -77,11 +80,14 @@ class CountryState {
 
 // TODO: comments
 class PlayerState {
+  final int playerId;
   final String name;
   final String avatar;
   final String color;
   int reinforcement;
-  PlayerState(this.name, this.avatar, this.color, {this.reinforcement: 0});
+
+  PlayerState(this.playerId, this.name, this.avatar, this.color,
+      {this.reinforcement: 0});
 }
 
 /**

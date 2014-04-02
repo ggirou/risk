@@ -7,7 +7,7 @@
         stroke: black;
         stroke-width: 1;
       }
-      
+
       .selected .shape {
         fill: red;
       }
@@ -18,7 +18,7 @@
 
       text {
         cursor:default;
-      
+
         -webkit-user-select: none; /* Chrome/Safari */
         -moz-user-select: none; /* Firefox */
         -ms-user-select: none; /* IE10+ */
@@ -27,14 +27,26 @@
         -o-user-select: none;
         user-select: none;
       }
+
+      @keyframes highlight {
+        from { opacity: 1; }
+        to { opacity: 0.5; }
+      }
+
+      .highlighted {
+        animation-duration: 1s;
+        animation-name: highlight;
+        animation-iteration-count: infinite;
+        animation-direction: alternate;
+      }
     </style>
-    <svg id="svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
       viewBox="0 0 800 540" width="100%" height="100%">
       <image xlink:href="board.svg" width="100%" height="100%" />
-      
+
       <g id="countries">
         <template repeat="{{ country in countries }}">
-          <g on-click="{{ countryClick }}" class="country">
+          <g on-click="{{ countryClick }}" class="country" data-country="{{ country.id }}">
             <path id="path-{{ country.id }}" class="shape" d="{{ svgPaths[country.id]['path'] }}"
               fill="{{ color(country) }}">
             </path>
