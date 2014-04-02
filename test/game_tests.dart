@@ -76,8 +76,7 @@ testReinforcementComputation() {
   });
 
   test('for Australia', () {
-    var countries = 
-        CONTINENTS.firstWhere((c) => c.id == 'australia').countries;
+    var countries = CONTINENTS.firstWhere((c) => c.id == 'australia').countries;
     // 4 countries + 2
     var expected = 3;
     expect(computeReinforcement(buildGame(countries), playerId), equals(expected
@@ -119,6 +118,7 @@ testRiskGame() {
 
   test('on PlayerJoined should add a player', () {
     // GIVEN
+    game = riskGamePlayerJoining();
     var event = new PlayerJoined()
         ..playerId = 123
         ..name = "John Lennon"
@@ -129,7 +129,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGamePlayerJoining();
     expected.players[123] = new PlayerState("John Lennon", "kadhafi.png", "red"
         );
 
@@ -138,6 +138,7 @@ testRiskGame() {
 
   test('on GameStarted should set player orders and player reinforcements', () {
     // GIVEN
+    game = riskGamePlayerJoining();
     var event = new GameStarted()
         ..playersOrder = [2, 1, 0]
         ..armies = 42;
@@ -146,8 +147,9 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGamePlayerJoining();
     expected.started = true;
+    expected.setupPhase = true;
     expected.playersOrder = [2, 1, 0];
     expected.players[0].reinforcement = 42;
     expected.players[1].reinforcement = 42;
@@ -202,8 +204,73 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameInGame();
+    expected.turnStep = TURN_STEP_REINFORCEMENT;
     expected.activePlayerId = 2;
     expected.players[2].reinforcement = 42;
+
+    expectEquals(game, expected);
+  });
+
+  test('on SetupEnded should set the setupPhase to false', () {
+    // GIVEN
+    game = riskGameSetuping();
+    var event = new SetupEnded();
+
+    // WHEN
+    game.update(event);
+
+    // THEN
+    var expected = riskGameSetuping();
+    expected.setupPhase = false;
+
+    expectEquals(game, expected);
+  });
+
+  test('on NextStep should set attack when reinforcement', () {
+    // GIVEN
+    game = riskGameInGame();
+    game.turnStep = TURN_STEP_REINFORCEMENT;
+    var event = new NextStep();
+
+    // WHEN
+    game.update(event);
+
+    // THEN
+    var expected = riskGameInGame();
+    expected.turnStep = TURN_STEP_ATTACK;
+
+    expectEquals(game, expected);
+  });
+
+  test('on NextStep should set step when attack', () {
+    // GIVEN
+    game = riskGameInGame();
+    game.turnStep = TURN_STEP_ATTACK;
+    var event = new NextStep();
+
+    // WHEN
+    game.update(event);
+
+    // THEN
+    var expected = riskGameInGame();
+    expected.turnStep = TURN_STEP_FORTIFICATION;
+
+    expectEquals(game, expected);
+  });
+
+  test('on NextStep should keep fortification step when already fortification',
+      () {
+    // GIVEN
+    game = riskGameInGame();
+    game.turnStep = TURN_STEP_FORTIFICATION;
+    var event = new NextStep();
+
+    // WHEN
+    game.update(event);
+
+    // THEN
+    var expected = riskGameInGame();
+    expected.turnStep = TURN_STEP_FORTIFICATION;
 
     expectEquals(game, expected);
   });
@@ -259,10 +326,13 @@ testRiskGameEngine() {
   StreamController outputStream;
   RiskGameEngine engine;
 
+  RiskGameEngine riskGameEngine(RiskGame game) => new RiskGameEngine(outputStream, game,
+      hazard: hazard);
+
   setUp(() {
     hazard = new HazardMock();
     outputStream = new StreamController(sync: true);
-    engine = new RiskGameEngine(outputStream, riskGameInGame(), hazard: hazard);
+    engine = riskGameEngine(riskGameInGame());
   });
 
   eventsList() {
@@ -274,10 +344,7 @@ testRiskGameEngine() {
       => expectEquals(events, expectedEvents));
 
   group('on JoinGame', () {
-    setUp(() {
-      engine = new RiskGameEngine(outputStream, riskGamePlayerJoining(), hazard:
-          hazard);
-    });
+    setUp(() => engine = riskGameEngine(riskGamePlayerJoining()));
 
     test('should add a player', () {
       // GIVEN
@@ -295,7 +362,7 @@ testRiskGameEngine() {
       expected.players[123] = new PlayerState("John Lennon", "kadhafi.png",
           "red");
 
-      expectEquals(expected, engine.game);
+      expectEquals(engine.game, expected);
       return expectEvents([new PlayerJoined()
             ..playerId = 123
             ..name = "John Lennon"
@@ -317,22 +384,18 @@ testRiskGameEngine() {
       // THEN
       var expected = riskGamePlayerJoining();
 
-      expectEquals(expected, engine.game);
+      expectEquals(engine.game, expected);
       return expectEvents([]);
     });
   });
 
   group('on StarGame', () {
-    setUp(() {
-      engine = new RiskGameEngine(outputStream, riskGamePlayerJoining(), hazard:
-          hazard);
-    });
+    setUp(() => engine = riskGameEngine(riskGamePlayerJoining()));
 
     test('should start game', () {
       // GIVEN
       var event = new StartGame()..playerId = 0;
       engine.game.activePlayerId = null;
-      engine.setupPhase = true;
 
       // WHEN
       engine.handle(event);
@@ -340,11 +403,14 @@ testRiskGameEngine() {
       // THEN
       var expected = riskGamePlayerJoining();
       expected.started = true;
+      expected.setupPhase = true;
       expected.playersOrder = [2, 1, 0];
       expected.activePlayerId = 2;
+      expected.players[0].reinforcement = 35;
+      expected.players[1].reinforcement = 35;
       expected.players[2].reinforcement = 35;
 
-      //expectEquals(expected, engine.game);
+      expectEquals(engine.game, expected);
       return expectEvents([new GameStarted()
             ..armies = 35
             ..playersOrder = [2, 1, 0], new NextPlayer()
@@ -362,7 +428,7 @@ testRiskGameEngine() {
       // THEN
       var expected = riskGamePlayerJoining();
 
-      expectEquals(expected, engine.game);
+      expectEquals(engine.game, expected);
       return expectEvents([]);
     });
 
@@ -382,7 +448,7 @@ testRiskGameEngine() {
         0: playerState()
       };
 
-      expectEquals(expected, engine.game);
+      expectEquals(engine.game, expected);
       return expectEvents([]);
     });
 
@@ -398,18 +464,128 @@ testRiskGameEngine() {
       var expected = riskGamePlayerJoining();
       expected.started = true;
 
-      expectEquals(expected, engine.game);
+      expectEquals(engine.game, expected);
       return expectEvents([]);
     });
   });
 
   group('on ArmyPlaced', () {
-    test('should add an army on a neutral country', () {
+    group('when setuping', () {
+      setUp(() => engine = riskGameEngine(riskGameSetuping()));
+
+      test('should add an army and next player', () {
+        // GIVEN
+        engine.game.activePlayerId = 1;
+        var event = new PlaceArmy()
+            ..playerId = 1
+            ..country = "eastern_australia";
+
+        // WHEN
+        engine.handle(event);
+
+        // THEN
+        var expected = riskGameSetuping();
+        expected.countries["eastern_australia"] = new CountryState(
+            "eastern_australia", playerId: 1, armies: 1);
+        expected.players[1].reinforcement--;
+
+        expected.activePlayerId = 2;
+
+        expectEquals(engine.game, expected);
+        return expectEvents([new ArmyPlaced()
+              ..playerId = 1
+              ..country = "eastern_australia", new NextPlayer(
+                  )
+              ..playerId = 2
+              ..reinforcement = 10]);
+      });
+
+      test('should add an army and end setup when all armies are placed', () {
+        // GIVEN
+        engine.game.players = {
+          0: playerState(reinforcement: 0),
+          1: playerState(reinforcement: 0),
+          2: playerState(reinforcement: 1),
+        };
+        var event = new PlaceArmy()
+            ..playerId = 2
+            ..country = "eastern_australia";
+
+        // WHEN
+        engine.handle(event);
+
+        // THEN
+        var expected = riskGameSetuping();
+        expected.countries["eastern_australia"] = new CountryState(
+            "eastern_australia", playerId: 2, armies: 1);
+        expected.players[2].reinforcement--;
+        expected.setupPhase = false;
+        expected.activePlayerId = 0;
+        expected.players = {
+          0: playerState(reinforcement: 3),
+          1: playerState(reinforcement: 0),
+          2: playerState(reinforcement: 0),
+        };
+
+        expectEquals(engine.game, expected);
+        return expectEvents([new ArmyPlaced()
+              ..playerId = 2
+              ..country = "eastern_australia", new SetupEnded(), new NextPlayer(
+                  )
+              ..playerId = 0
+              ..reinforcement = 3]);
+      });
+    });
+
+    group('in player turn', () {
+      test('should add an army on a neutral country', () {
+        // GIVEN
+        var event = new PlaceArmy()
+            ..playerId = 1
+            ..country = "eastern_australia";
+
+        // WHEN
+        engine.handle(event);
+
+        // THEN
+        var expected = riskGameInGame();
+        expected.countries["eastern_australia"] = new CountryState(
+            "eastern_australia", playerId: 1, armies: 1);
+        expected.players[1].reinforcement--;
+
+        expectEquals(engine.game, expected);
+        return expectEvents([new ArmyPlaced()
+              ..playerId = 1
+              ..country = "eastern_australia"]);
+      });
+
+      test('should add an army on country owned by the player', () {
+        // GIVEN
+        var event = new PlaceArmy()
+            ..playerId = 1
+            ..country = "western_australia";
+
+        // WHEN
+        engine.handle(event);
+
+        // THEN
+        var expected = riskGameInGame();
+        expected.countries["western_australia"].armies++;
+        expected.players[1].reinforcement--;
+
+        expectEquals(engine.game, expected);
+        return expectEvents([new ArmyPlaced()
+              ..playerId = 1
+              ..country = "western_australia"]);
+      });
+    });
+
+    test('should add an army and next step', () {
       // GIVEN
+      engine.game..players[1].reinforcement = 1;
       var event = new PlaceArmy()
           ..playerId = 1
           ..country = "eastern_australia";
-      engine.setupPhase = false;
 
       // WHEN
       engine.handle(event);
@@ -418,33 +594,14 @@ testRiskGameEngine() {
       var expected = riskGameInGame();
       expected.countries["eastern_australia"] = new CountryState(
           "eastern_australia", playerId: 1, armies: 1);
-      expected.players[1].reinforcement--;
+      expected.players[1].reinforcement = 0;
 
-      expectEquals(expected, engine.game);
+      expected.turnStep = TURN_STEP_ATTACK;
+
+      expectEquals(engine.game, expected);
       return expectEvents([new ArmyPlaced()
             ..playerId = 1
-            ..country = "eastern_australia"]);
-    });
-
-    test('should add an army on country owned by the player', () {
-      // GIVEN
-      var event = new PlaceArmy()
-          ..playerId = 1
-          ..country = "western_australia";
-      engine.setupPhase = false;
-
-      // WHEN
-      engine.handle(event);
-
-      // THEN
-      var expected = riskGameInGame();
-      expected.countries["western_australia"].armies++;
-      expected.players[1].reinforcement--;
-
-      expectEquals(expected, engine.game);
-      return expectEvents([new ArmyPlaced()
-            ..playerId = 1
-            ..country = "western_australia"]);
+            ..country = "eastern_australia", new NextStep()]);
     });
 
     var errorCases = {
@@ -464,7 +621,7 @@ testRiskGameEngine() {
         // THEN
         var expected = riskGameInGame();
 
-        expectEquals(expected, engine.game);
+        expectEquals(engine.game, expected);
         return expectEvents([]);
       });
     });
@@ -501,7 +658,7 @@ testRiskGameEngine() {
               ..country = "indonesia"
               ..remainingArmies = 1);
 
-      expectEquals(expected, engine.game);
+      expectEquals(engine.game, expected);
       return expectEvents([expectedEvent]);
     });
 
@@ -532,27 +689,27 @@ testRiskGameEngine() {
         // THEN
         var expected = riskGameInGame();
 
-        expectEquals(expected, engine.game);
+        expectEquals(engine.game, expected);
         return expectEvents([]);
       });
     });
   });
 }
 
-playerState({name: "John", avatar: "avatar.png", color: "blue", reinforcement:
+PlayerState playerState({name: "John", avatar: "avatar.png", color: "blue", reinforcement:
     0}) => new PlayerState(name, avatar, color, reinforcement: reinforcement);
 
-riskGamePlayerJoining() => new RiskGame()..players = {
+RiskGame riskGamePlayerJoining() => new RiskGame()..players = {
       0: playerState(),
       1: playerState(),
       2: playerState(),
     };
 
-riskGameInGame() => new RiskGame()
+RiskGame riskGameSetuping() => new RiskGame()
     ..players = {
-      0: playerState(reinforcement: 10),
+      0: playerState(reinforcement: 0),
       1: playerState(reinforcement: 1),
-      2: playerState(reinforcement: 0),
+      2: playerState(reinforcement: 10),
     }
     ..countries = {
       "western_australia": new CountryState("western_australia", playerId: 1,
@@ -564,8 +721,19 @@ riskGameInGame() => new RiskGame()
           ),
     }
     ..started = true
-    ..activePlayerId = 1
+    ..setupPhase = true
+    ..activePlayerId = 2
     ..playersOrder = [1, 2, 0];
+
+RiskGame riskGameInGame() => riskGameSetuping()
+    ..players = {
+      0: playerState(reinforcement: 0),
+      1: playerState(reinforcement: 5),
+      2: playerState(reinforcement: 0),
+    }
+    ..setupPhase = false
+    ..turnStep = TURN_STEP_REINFORCEMENT
+    ..activePlayerId = 1;
 
 class HazardMock extends Mock implements Hazard {
   List<int> giveOrders(Iterable<int> players) => players.toList(

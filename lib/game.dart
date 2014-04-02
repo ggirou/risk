@@ -21,6 +21,8 @@ class RiskGame {
   int activePlayerId;
 
   bool started = false;
+  bool setupPhase = false;
+  String turnStep;
 
   RiskGame();
   RiskGame.fromHistory(List<EngineEvent> events) {
@@ -33,6 +35,7 @@ class RiskGame {
           event.color);
     } else if (event is GameStarted) {
       started = true;
+      setupPhase = true;
       playersOrder = event.playersOrder;
       players.values.forEach((ps) => ps.reinforcement = event.armies);
     } else if (event is ArmyPlaced) {
@@ -42,6 +45,11 @@ class RiskGame {
     } else if (event is NextPlayer) {
       activePlayerId = event.playerId;
       players[event.playerId].reinforcement = event.reinforcement;
+    } else if (event is SetupEnded) {
+      setupPhase = false;
+    } else if (event is NextStep) {
+      turnStep = turnStep == TURN_STEP_REINFORCEMENT ? TURN_STEP_ATTACK :
+          TURN_STEP_FORTIFICATION;
     } else if (event is BattleEnded) {
       countries[event.attacker.country].armies = event.attacker.remainingArmies;
       countries[event.defender.country].armies = event.defender.remainingArmies;
@@ -117,8 +125,6 @@ class RiskGameEngine {
 
   final Hazard hazard;
 
-  bool setupPhase = true;
-  String turnStep;
   BattleEnded lastBattle;
 
   RiskGameEngine(this.outSink, this.game, {Hazard hazard}): hazard = hazard !=
@@ -167,7 +173,6 @@ class RiskGameEngine {
   }
 
   void sendGameStarted() {
-    setupPhase = true;
     _broadcast(new GameStarted()
         ..armies = START_ARMIES[game.players.length]
         ..playersOrder = hazard.giveOrders(game.players.keys));
@@ -191,11 +196,13 @@ class RiskGameEngine {
         ..playerId = playerId
         ..country = event.country);
 
-    if (setupPhase) {
-      setupPhase = game.players.values.any((ps) => ps.reinforcement > 0);
+    if (game.setupPhase) {
+      if(game.players.values.every((ps) => ps.reinforcement == 0)) {
+        _broadcast(new SetupEnded());
+      }
       sendNextPlayer();
     } else if (game.players[playerId].reinforcement == 0) {
-      turnStep = TURN_STEP_ATTACK;
+      _broadcast(new NextStep());
     }
   }
 
@@ -255,7 +262,7 @@ class RiskGameEngine {
     if (!COUNTRIES[event.from].neighbours.contains(event.to)) return;
 
     // if attack move, countries must be the same as attack
-    if (turnStep == TURN_STEP_ATTACK && (event.from !=
+    if (game.turnStep == TURN_STEP_ATTACK && (event.from !=
         lastBattle.attacker.country || event.to != lastBattle.defender.country)) return;
 
     _broadcast(new ArmyMoved()
@@ -264,7 +271,8 @@ class RiskGameEngine {
         ..to = event.to
         ..armies = event.armies);
 
-    if (turnStep == TURN_STEP_FORTIFICATION) {
+    if (game.turnStep == TURN_STEP_FORTIFICATION) {
+      // TODO: test
       sendNextPlayer();
     }
   }
@@ -272,7 +280,9 @@ class RiskGameEngine {
   void onEndAttack(EndAttack event) {
     if (event.playerId != game.activePlayerId) return;
 
-    turnStep = TURN_STEP_FORTIFICATION;
+    // TODO: check current step
+    
+    _broadcast(new NextStep());
   }
 
   void onEndTurn(EndTurn event) {
@@ -286,11 +296,9 @@ class RiskGameEngine {
     int nextPlayerIndex = game.activePlayerId == null ? 0 : orders.indexOf(
         game.activePlayerId) + 1;
     int nextPlayerId = orders[nextPlayerIndex % orders.length];
-    int reinforcement = setupPhase ? game.players[nextPlayerId].reinforcement :
+    int reinforcement = game.setupPhase ? game.players[nextPlayerId].reinforcement :
         // TODO: tests
     computeReinforcement(game, nextPlayerId);
-
-    turnStep = TURN_STEP_REINFORCEMENT;
 
     _broadcast(new NextPlayer()
         ..playerId = nextPlayerId
