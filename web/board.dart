@@ -128,6 +128,7 @@ class RiskBoard extends PolymerElement {
       isNotMine(to));
 
   _makeSelectable(Iterable<String> countries) {
+    // FIXME there a bug on attack : the attacker don't remove selectable
     shadowRoot.querySelector('.shape').classes.remove('selectable');
     countries.forEach((c) => _findPath(c).classes.add('selectable'));
   }

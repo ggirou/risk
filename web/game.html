@@ -35,8 +35,8 @@
           <template if='{{ pendingMove != null }}'>
             <div style='text-align: center; padding: 1em;'>
               <p>How many armies do you want to move from <strong>{{ pendingMove.from }}</strong> to <strong>{{ pendingMove.to }}</strong>?</p>
-              <input type="range" value="{{ armiesToMove | asInteger }}" min="1" max="{{ pendingMove.from - 1 }}" />
-              <button on-click='{{ moveOnConquer }}'>Move {{ armiesToMove }} armies</button>
+              <input type="range" value="{{ armiesToMove | asInteger }}" min="1" max="{{ pendingMove.maxArmies }}" />
+              <button on-click='{{ moveArmies }}'>Move {{ armiesToMove }} armies</button>
             </div>
           </template>
           <template if='{{ canStart }}'>

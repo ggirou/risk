@@ -14,6 +14,8 @@ import 'package:risk/polymer_transformer.dart';
 
 import 'board.dart';
 
+const AUTO_SETUP = true;
+
 class Move {
   String from, to;
   int maxArmies;
@@ -84,15 +86,22 @@ class RiskGame extends PolymerElement {
                 ..to = event.defender.country
                 ..armies = 1);
           } else {
-            armiesToMove = 1;
             pendingMove = new Move()
                 ..from = event.attacker.country
                 ..to = event.defender.country
                 ..maxArmies = event.attacker.remainingArmies - 1;
+            armiesToMove = pendingMove.maxArmies;
           }
         }
-      } else if (event is ArmyMoved) {
-        pendingMove = null;
+      }
+    } else if (event is ArmyMoved) {
+      pendingMove = null;
+    } else if (event is NextPlayer) {
+      if (AUTO_SETUP && game.setupPhase && event.playerId == playerId) {
+        sendEvent(new PlaceArmy()
+            ..playerId = playerId
+            ..country = (game.countries.values.where((cs) => cs.playerId ==
+                playerId).map((cs) => cs.countryId).toList()..shuffle()).first);
       }
     }
 
@@ -117,27 +126,39 @@ class RiskGame extends PolymerElement {
     }
   }
 
-  attack(CustomEvent e, var detail, Element target) => sendEvent(new Attack()
-      ..playerId = playerId
-      ..from = e.detail['from']
-      ..to = e.detail['to']
-      ..armies = min(3, game.countries[e.detail['from']].armies - 1));
+  attack(CustomEvent e, var detail, Element target) {
+    mode = null;
+    sendEvent(new Attack()
+        ..playerId = playerId
+        ..from = e.detail['from']
+        ..to = e.detail['to']
+        ..armies = min(3, game.countries[e.detail['from']].armies - 1));
+  }
 
-  move(CustomEvent e, var detail, Element target) => pendingMove = new Move()
-      ..from = e.detail['from']
-      ..to = e.detail['to']
-      ..maxArmies = game.countries[e.detail['from']].armies - 1;
+  move(CustomEvent e, var detail, Element target) {
+    mode = null;
+    pendingMove = new Move()
+        ..from = e.detail['from']
+        ..to = e.detail['to']
+        ..maxArmies = game.countries[e.detail['from']].armies - 1;
+    armiesToMove = pendingMove.maxArmies;
+  }
 
-  selection(CustomEvent e, var detail, Element target) => sendEvent(
-      new PlaceArmy()
-      ..playerId = playerId
-      ..country = e.detail);
+  selection(CustomEvent e, var detail, Element target) {
+    mode = null;
+    sendEvent(new PlaceArmy()
+        ..playerId = playerId
+        ..country = e.detail);
+  }
 
-  moveOnConquer() => sendEvent(new MoveArmy()
-      ..playerId = playerId
-      ..from = pendingMove.from
-      ..to = pendingMove.to
-      ..armies = armiesToMove);
+  moveArmies() {
+    mode = null;
+    sendEvent(new MoveArmy()
+        ..playerId = playerId
+        ..from = pendingMove.from
+        ..to = pendingMove.to
+        ..armies = armiesToMove);
+  }
 
   String _ask(String question) => context.callMethod('prompt', [question]);
 
