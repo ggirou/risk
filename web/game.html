@@ -22,6 +22,16 @@
               It's up to you ! Select one of your country to add an army.
             </div>
           </template>
+          <template if='{{ mode == "attack" }}'>
+            <div style='text-align: center; padding: 1em;'>
+              It's up to you ! Select the attack to engage.
+            </div>
+          </template>
+          <template if='{{ mode == "move" }}'>
+            <div style='text-align: center; padding: 1em;'>
+              It's up to you ! Select the forfication to make.
+            </div>
+          </template>
           <template if='{{ myLastBattleForMove != null }}'>
             <div style='text-align: center; padding: 1em;'>
               <p>How many armies do you want to move from <strong>{{ myLastBattleForMove.attacker.country }}</strong> to <strong>{{ myLastBattleForMove.defender.country }}</strong>?</p>
