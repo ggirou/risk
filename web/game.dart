@@ -31,6 +31,9 @@ class RiskGame extends PolymerElement {
       ..players = toObservable({});
 
   @observable
+  bool isMyTurn = false;
+
+  @observable
   bool canStart = false;
 
   @observable
@@ -97,7 +100,8 @@ class RiskGame extends PolymerElement {
     } else if (event is ArmyMoved) {
       pendingMove = null;
     } else if (event is NextPlayer) {
-      if (AUTO_SETUP && game.setupPhase && event.playerId == playerId) {
+      isMyTurn = event.playerId == playerId;
+      if (AUTO_SETUP && game.setupPhase && isMyTurn) {
         sendEvent(new PlaceArmy()
             ..playerId = playerId
             ..country = (game.countries.values.where((cs) => cs.playerId ==
@@ -109,11 +113,13 @@ class RiskGame extends PolymerElement {
 
     super.notifyPropertyChange(#game, null, game);
     // can we do someting else ?
-    ($['board'] as RiskBoard).redraw();
+    ($['board'] as RiskBoard)
+        ..modeChanged(mode, mode)
+        ..redraw();
   }
 
   updateMode() {
-    if (!game.started || game.activePlayerId != playerId) {
+    if (!game.started || !isMyTurn) {
       mode = null;
     } else if (game.setupPhase) {
       mode = MODE_SELECT;
@@ -121,22 +127,18 @@ class RiskGame extends PolymerElement {
       mode = MODE_SELECT;
     } else if (game.turnStep == TURN_STEP_ATTACK) {
       mode = MODE_ATTACK;
-    } else if (game.turnStep == TURN_STEP_REINFORCEMENT) {
+    } else if (game.turnStep == TURN_STEP_FORTIFICATION) {
       mode = MODE_MOVE;
     }
   }
 
-  attack(CustomEvent e, var detail, Element target) {
-    mode = null;
-    sendEvent(new Attack()
-        ..playerId = playerId
-        ..from = e.detail['from']
-        ..to = e.detail['to']
-        ..armies = min(3, game.countries[e.detail['from']].armies - 1));
-  }
+  attack(CustomEvent e, var detail, Element target) => sendEvent(new Attack()
+      ..playerId = playerId
+      ..from = e.detail['from']
+      ..to = e.detail['to']
+      ..armies = min(3, game.countries[e.detail['from']].armies - 1));
 
   move(CustomEvent e, var detail, Element target) {
-    mode = null;
     pendingMove = new Move()
         ..from = e.detail['from']
         ..to = e.detail['to']
@@ -144,21 +146,20 @@ class RiskGame extends PolymerElement {
     armiesToMove = pendingMove.maxArmies;
   }
 
-  selection(CustomEvent e, var detail, Element target) {
-    mode = null;
-    sendEvent(new PlaceArmy()
-        ..playerId = playerId
-        ..country = e.detail);
-  }
+  selection(CustomEvent e, var detail, Element target) => sendEvent(
+      new PlaceArmy()
+      ..playerId = playerId
+      ..country = e.detail);
 
-  moveArmies() {
-    mode = null;
-    sendEvent(new MoveArmy()
-        ..playerId = playerId
-        ..from = pendingMove.from
-        ..to = pendingMove.to
-        ..armies = armiesToMove);
-  }
+  moveArmies() => sendEvent(new MoveArmy()
+      ..playerId = playerId
+      ..from = pendingMove.from
+      ..to = pendingMove.to
+      ..armies = armiesToMove);
+
+  endAttack() => sendEvent(new EndAttack()..playerId = playerId);
+
+  endTurn() => sendEvent(new EndTurn()..playerId = playerId);
 
   String _ask(String question) => context.callMethod('prompt', [question]);
 

@@ -54,10 +54,12 @@ class RiskBoard extends PolymerElement {
     final countryIds = countries.map((c) => c.id);
     if (newValue == MODE_SELECT) {
       selectables = countryIds.where(isMine).toList();
-    } else if (mode == MODE_ATTACK) {
+    } else if (newValue == MODE_ATTACK) {
       selectables = countryIds.where(canAttackFrom).toList();
-    } else if (mode == MODE_MOVE) {
-      selectables = countryIds.where(isMine).toList();
+    } else if (newValue == MODE_MOVE) {
+      selectables = countryIds.where(canFortifyFrom).toList();
+    } else {
+      selectables = [];
     }
   }
 
@@ -73,15 +75,16 @@ class RiskBoard extends PolymerElement {
 
       dispatchEvent(new CustomEvent('selection', detail: countryId));
     } else if (mode == MODE_ATTACK) {
-      _handleMove(countryId, fromConstraint: canAttackFrom, toConstraint:
-          isNotMine);
+      _handleMove(countryId, 'attack', fromConstraint: canAttackFrom,
+          toConstraint: isNotMine);
     } else if (mode == MODE_MOVE) {
-      _handleMove(countryId, fromConstraint: isMine, toConstraint: isMine);
+      _handleMove(countryId, 'move', fromConstraint: canFortifyFrom,
+          toConstraint: isMine);
     }
   }
 
-  _handleMove(String country, {bool fromConstraint(country), bool
-      toConstraint(country)}) {
+  _handleMove(String country, String eventName, {bool
+      fromConstraint(country), bool toConstraint(country)}) {
     // select "from"
     if (_from == null) {
       if (!fromConstraint(country)) return;
@@ -98,7 +101,7 @@ class RiskBoard extends PolymerElement {
       if (!toConstraint(country)) return;
 
       selectables = [];
-      dispatchEvent(new CustomEvent('attack', detail: {
+      dispatchEvent(new CustomEvent(eventName, detail: {
         'from': _from,
         'to': country
       }));
@@ -111,6 +114,9 @@ class RiskBoard extends PolymerElement {
   bool canAttackFrom(String country) => isMine(country) &&
       game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
       isNotMine(to));
+  bool canFortifyFrom(String country) => isMine(country) &&
+      game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
+      isMine(to));
 
   String color(Country country) {
     final cs = game.countries[country.id];
