@@ -105,8 +105,7 @@ testRiskGameEngine() {
       expectEquals(engine.game, expected);
       return expectEvents([new GameStarted()
             ..armies = 35
-            ..playersOrder = [2, 1, 0]
-            ..countries = {}, new NextPlayer()
+            ..playersOrder = [2, 1, 0], new NextPlayer()
             ..playerId = 2
             ..reinforcement = 35]);
     });

@@ -63,17 +63,21 @@ class RiskGameEngine {
   }
 
   void sendGameStarted() {
+    _broadcast(new GameStarted()
+        ..armies = START_ARMIES[game.players.length]
+        ..playersOrder = hazard.giveOrders(game.players.keys));
+
+    // add one army on every country
     final groupsOfCountries = hazard.split(COUNTRIES.keys, game.players.length);
     final countries = {};
     int i = 0;
     game.players.keys.forEach((playerId) {
-      groupsOfCountries[i++].forEach((e) => countries[e] = playerId);
+      groupsOfCountries[i++].forEach((c) => _broadcast(new ArmyPlaced()
+          ..playerId = playerId
+          ..country = c));
     });
 
-    _broadcast(new GameStarted()
-        ..armies = START_ARMIES[game.players.length]
-        ..playersOrder = hazard.giveOrders(game.players.keys)
-        ..countries = countries);
+    // next
     sendNextPlayer();
   }
 

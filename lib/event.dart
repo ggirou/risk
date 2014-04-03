@@ -97,8 +97,6 @@ class GameStarted implements EngineEvent {
   int armies;
   /// The players order
   List<int> playersOrder;
-  /// The countries and their owner
-  Map<String, int> countries;
 }
 
 /// sent by engine when army is placed on a country

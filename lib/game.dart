@@ -37,9 +37,6 @@ class RiskGame {
       setupPhase = true;
       playersOrder = event.playersOrder;
       players.values.forEach((ps) => ps.reinforcement = event.armies);
-      countries.addAll(new Map<String, CountryState>.fromIterable(
-          event.countries.keys, value: (c) => new CountryState(c, playerId:
-          event.countries[c], armies: 1)));
     } else if (event is ArmyPlaced) {
       countries.putIfAbsent(event.country, () => new CountryState(event.country,
           playerId: event.playerId)).armies++;

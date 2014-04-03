@@ -138,8 +138,7 @@ testRiskGame() {
     game = riskGamePlayerJoining();
     var event = new GameStarted()
         ..playersOrder = [2, 1, 0]
-        ..armies = 42
-        ..countries= {};
+        ..armies = 42;
 
     // WHEN
     game.update(event);
