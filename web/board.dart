@@ -47,6 +47,17 @@ class RiskBoard extends PolymerElement {
         svgPaths = e);
   }
 
+  modeChanged(String oldValue, String newValue) {
+    final countryIds = countries.map((c) => c.id);
+    if (newValue == MODE_SELECT) {
+      _makeSelectable(countryIds.where(isMine));
+    } else if (mode == MODE_ATTACK) {
+      _makeSelectable(countryIds.where(canAttackFrom));
+    } else if (mode == MODE_MOVE) {
+      _makeSelectable(countryIds.where(isMine));
+    }
+  }
+
   countryClick(Event e, var detail, Element target) {
     if (mode == null) return;
 
@@ -65,7 +76,7 @@ class RiskBoard extends PolymerElement {
         if (isNotMine(countryId)) return;
 
         _from = countryId;
-        _highlight(COUNTRIES[_from].neighbours.where(isNotMine));
+        _makeSelectable(COUNTRIES[_from].neighbours.where(isNotMine));
       } else {
         final neighbours = COUNTRIES[_from].neighbours;
 
@@ -75,8 +86,11 @@ class RiskBoard extends PolymerElement {
         // "to" must not be mine
         if (isMine(countryId)) return;
 
-        _removeHighlight();
-        dispatchEvent(new CustomEvent('attack', detail: {'from': _from, 'to': countryId}));
+        _removeSelectables();
+        dispatchEvent(new CustomEvent('attack', detail: {
+          'from': _from,
+          'to': countryId
+        }));
         _from = null;
       }
     } else if (mode == MODE_MOVE) {
@@ -86,7 +100,7 @@ class RiskBoard extends PolymerElement {
         if (isNotMine(countryId)) return;
 
         _from = countryId;
-        _highlight(COUNTRIES[_from].neighbours.where(isMine));
+        _makeSelectable(COUNTRIES[_from].neighbours.where(isMine));
       } else {
         final neighbours = COUNTRIES[_from].neighbours;
 
@@ -96,26 +110,32 @@ class RiskBoard extends PolymerElement {
         // "to" must be mine
         if (isNotMine(countryId)) return;
 
-        _removeHighlight();
-        dispatchEvent(new CustomEvent('move', detail: {'from': _from, 'to': countryId}));
+        _removeSelectables();
+        dispatchEvent(new CustomEvent('move', detail: {
+          'from': _from,
+          'to': countryId
+        }));
         _from = null;
       }
       return;
     }
   }
 
-  isMine(country) => game.countries[country].playerId == playerId;
-  isNotMine(country) => !isMine(country);
+  bool isMine(String country) => game.countries[country].playerId == playerId;
+  bool isNotMine(String country) => !isMine(country);
+  bool canAttackFrom(String country) => isMine(country) &&
+      game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
+      isNotMine(to));
 
-  _highlight(Iterable<String> countries) {
-    shadowRoot.querySelector('.shape').classes.remove('highlighted');
-    countries.forEach((c) => _findPath(c).classes.add('highlighted'));
+  _makeSelectable(Iterable<String> countries) {
+    shadowRoot.querySelector('.shape').classes.remove('selectable');
+    countries.forEach((c) => _findPath(c).classes.add('selectable'));
   }
 
   //$['path-${id}'] doesn't work
   Element _findPath(String id) => $['svg'].querySelector('#path-${id}');
 
-  _removeHighlight() => _highlight([]);
+  _removeSelectables() => _makeSelectable([]);
 
   String color(Country country) {
     final cs = game.countries[country.id];
