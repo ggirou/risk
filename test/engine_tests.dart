@@ -24,6 +24,7 @@ testRiskGameEngine() {
     hazard = new HazardMock();
     outputStream = new StreamController(sync: true);
     engine = riskGameEngine(riskGameInGame());
+    autoSetup = false;
   });
 
   eventsList() {
