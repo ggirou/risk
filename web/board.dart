@@ -40,6 +40,9 @@ class RiskBoard extends PolymerElement {
   @observable
   var svgPaths;
 
+  @observable
+  List<String> selectables = [];
+
   String _from;
 
   RiskBoard.created(): super.created() {
@@ -50,11 +53,11 @@ class RiskBoard extends PolymerElement {
   modeChanged(String oldValue, String newValue) {
     final countryIds = countries.map((c) => c.id);
     if (newValue == MODE_SELECT) {
-      _makeSelectable(countryIds.where(isMine));
+      selectables = countryIds.where(isMine).toList();
     } else if (mode == MODE_ATTACK) {
-      _makeSelectable(countryIds.where(canAttackFrom));
+      selectables = countryIds.where(canAttackFrom).toList();
     } else if (mode == MODE_MOVE) {
-      _makeSelectable(countryIds.where(isMine));
+      selectables = countryIds.where(isMine).toList();
     }
   }
 
@@ -76,7 +79,7 @@ class RiskBoard extends PolymerElement {
         if (isNotMine(countryId)) return;
 
         _from = countryId;
-        _makeSelectable(COUNTRIES[_from].neighbours.where(isNotMine));
+        selectables = COUNTRIES[_from].neighbours.where(isNotMine).toList();
       } else {
         final neighbours = COUNTRIES[_from].neighbours;
 
@@ -86,7 +89,7 @@ class RiskBoard extends PolymerElement {
         // "to" must not be mine
         if (isMine(countryId)) return;
 
-        _removeSelectables();
+        selectables = [];
         dispatchEvent(new CustomEvent('attack', detail: {
           'from': _from,
           'to': countryId
@@ -100,7 +103,7 @@ class RiskBoard extends PolymerElement {
         if (isNotMine(countryId)) return;
 
         _from = countryId;
-        _makeSelectable(COUNTRIES[_from].neighbours.where(isMine));
+        selectables = COUNTRIES[_from].neighbours.where(isMine).toList();
       } else {
         final neighbours = COUNTRIES[_from].neighbours;
 
@@ -110,7 +113,7 @@ class RiskBoard extends PolymerElement {
         // "to" must be mine
         if (isNotMine(countryId)) return;
 
-        _removeSelectables();
+        selectables = [];
         dispatchEvent(new CustomEvent('move', detail: {
           'from': _from,
           'to': countryId
@@ -126,17 +129,6 @@ class RiskBoard extends PolymerElement {
   bool canAttackFrom(String country) => isMine(country) &&
       game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
       isNotMine(to));
-
-  _makeSelectable(Iterable<String> countries) {
-    // FIXME there a bug on attack : the attacker don't remove selectable
-    shadowRoot.querySelector('.shape').classes.remove('selectable');
-    countries.forEach((c) => _findPath(c).classes.add('selectable'));
-  }
-
-  //$['path-${id}'] doesn't work
-  Element _findPath(String id) => $['svg'].querySelector('#path-${id}');
-
-  _removeSelectables() => _makeSelectable([]);
 
   String color(Country country) {
     final cs = game.countries[country.id];

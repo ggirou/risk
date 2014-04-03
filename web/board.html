@@ -28,13 +28,16 @@
         user-select: none;
       }
 
+      .selectable {
+        cursor: pointer;
+      }
+
       @keyframes highlight {
         from { opacity: 1; }
         to { opacity: 0.5; }
       }
 
-      .selectable {
-        cursor: pointer;
+      .selectable .shape {
         animation-duration: 1s;
         animation-name: highlight;
         animation-iteration-count: infinite;
@@ -47,7 +50,7 @@
 
       <g id="countries">
         <template repeat="{{ country in countries }}">
-          <g on-click="{{ countryClick }}" class="country" data-country="{{ country.id }}">
+          <g on-click="{{ countryClick }}" class="country {{ {'selectable': selectables.contains(country.id)} }}" data-country="{{ country.id }}">
             <path id="path-{{ country.id }}" class="shape" d="{{ svgPaths[country.id]['path'] }}"
               fill="{{ color(country) }}">
             </path>
