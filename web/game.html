@@ -12,53 +12,53 @@
       <h1>Risk</h1>
       <div class="row">
         <!-- Risk Board -->
-        <risk-board game="{{game}}" class="col-md-8"></risk-board>
+        <risk-board id='board' game="{{ game }}" playerId="{{ playerId }}" mode="{{ mode }}" class="col-md-8"
+          on-attack="{{ attack }}"
+          on-move="{{ move }}"
+          on-selection="{{ selection }}"></risk-board>
         <div class="col-md-4">
+          <template if='{{ mode == "select" }}'>
+            <div style='text-align: center; padding: 1em;'>
+              It's up to you ! Select one of your country to add an army.
+            </div>
+          </template>
+          <template if='{{ mode == "attack" }}'>
+            <div style='text-align: center; padding: 1em;'>
+              It's up to you ! Select the attack to engage.
+            </div>
+          </template>
+          <template if='{{ mode == "move" }}'>
+            <div style='text-align: center; padding: 1em;'>
+              It's up to you ! Select the forfication to make.
+            </div>
+          </template>
+          <template if='{{ pendingMove != null }}'>
+            <div style='text-align: center; padding: 1em;'>
+              <p>How many armies do you want to move from <strong>{{ pendingMove.from }}</strong> to <strong>{{ pendingMove.to }}</strong>?</p>
+              <input type="range" value="{{ armiesToMove | asInteger }}" min="1" max="{{ pendingMove.maxArmies }}" />
+              <button on-click='{{ moveArmies }}'>Move {{ armiesToMove }} armies</button>
+            </div>
+          </template>
+          <template if='{{ canStart }}'>
+            <div style='text-align: center; padding: 1em;'>
+              <button on-click='{{ startGame }}'>Start Game</button>
+            </div>
+          </template>
           <!-- Players List -->
           <ul id="avatars" class="nav nav-pills nav-stacked navbar-inverse img-rounded">
-            <li>
-              <a>
-                <img src="img/avatars/castro.png" class="img-rounded" alt="Avatar">
-                <span><b>Paul McCartney</b></span>
-                <span class="badge pull-right">
-                  0
-                </span>
-              </a>
-            </li>
-            <li class="active">
-              <a>
-                <img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar">
-                <span><b>John Lennon</b></span>
-                <span class="badge pull-right">
-                  <i class="riskicon riskicon-soldier"></i>
-                  <i class="riskicon riskicon-soldier"></i>
-                  <i class="riskicon riskicon-soldier"></i>
-                  8
-                </span>
-              </a>
-            </li>
-            <li>
-              <a>
-                <img src="img/avatars/staline.png" class="img-rounded" alt="Avatar">
-                <span><b>Ringo Starr</b></span>
-                <span class="badge pull-right">
-                  <i class="riskicon riskicon-soldier"></i>
-                  <i class="riskicon riskicon-soldier"></i>
-                  2
-                </span>
-              </a>
-            </li>
-            <li>
-              <a>
-                <img src="img/avatars/kim-jong-il.png" class="img-rounded" alt="Avatar">
-                <span><b>George Harrison</b></span>
-                <span class="badge pull-right">
-                  <i class="riskicon riskicon-soldier"></i>
-                  <i class="riskicon riskicon-soldier"></i>
-                  2
-                </span>
-              </a>
-            </li>
+            <template repeat="{{ player in game.players.values }}">
+              <li class="{{ {'active': player.playerId == game.activePlayerId} }}">
+                <a>
+                  <img src="img/avatars/{{ player.avatar }}.png" class="img-rounded" alt="Avatar">
+                  <span><b>{{ player.name }}</b></span>
+                  <span class="badge pull-right">
+                    <i class="riskicon riskicon-soldier"></i>
+                    <i class="riskicon riskicon-soldier"></i>
+                    0
+                  </span>
+                </a>
+              </li>
+            </template>
           </ul>
           <!-- Game history -->
           <div id="history" class="panel panel-default">
@@ -78,7 +78,7 @@
       </div>
     </section>
   </template>
-    
+
   <script type="application/dart" src="game.dart"></script>
 </polymer-element>
 
