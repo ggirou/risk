@@ -7,6 +7,9 @@ import 'event.dart';
 import 'map.dart';
 import 'game.dart';
 
+bool autoSetup = new String.fromEnvironment('autoSetup', defaultValue: 'true')
+    == 'true';
+
 class RiskGameEngine {
   final RiskGame game;
   final EventSink<EngineEvent> outSink;
@@ -76,6 +79,21 @@ class RiskGameEngine {
           ..playerId = playerId
           ..country = c));
     });
+
+    // add all armies randomly
+    if (autoSetup) {
+      game.players.values.forEach((playerState) {
+        final myCountries = game.countries.values.where((cs) => cs.playerId ==
+            playerState.playerId).map((cs) => cs.countryId).toList();
+        while (playerState.reinforcement > 0) {
+          final country = (myCountries..shuffle()).first;
+          _broadcast(new ArmyPlaced()
+              ..playerId = playerState.playerId
+              ..country = country);
+        }
+      });
+      _broadcast(new SetupEnded());
+    }
 
     // next
     sendNextPlayer();

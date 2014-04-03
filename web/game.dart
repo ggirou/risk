@@ -14,7 +14,7 @@ import 'package:risk/polymer_transformer.dart';
 
 import 'board.dart';
 
-const AUTO_SETUP = true;
+const AUTO_SETUP = false;
 
 class Move {
   String from, to;
