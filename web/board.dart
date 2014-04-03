@@ -69,58 +69,40 @@ class RiskBoard extends PolymerElement {
 
     if (mode == MODE_SELECT) {
       // country selected is not mine
-      if (game.countries[countryId].playerId != playerId) return;
+      if (isNotMine(countryId)) return;
 
       dispatchEvent(new CustomEvent('selection', detail: countryId));
     } else if (mode == MODE_ATTACK) {
-      // select "from"
-      if (_from == null) {
-        // country selected must be mine
-        if (isNotMine(countryId)) return;
-
-        _from = countryId;
-        selectables = COUNTRIES[_from].neighbours.where(isNotMine).toList();
-      } else {
-        final neighbours = COUNTRIES[_from].neighbours;
-
-        // "to" must be a neighbour of "from"
-        if (!neighbours.contains(countryId)) return;
-
-        // "to" must not be mine
-        if (isMine(countryId)) return;
-
-        selectables = [];
-        dispatchEvent(new CustomEvent('attack', detail: {
-          'from': _from,
-          'to': countryId
-        }));
-        _from = null;
-      }
+      _handleMove(countryId, fromConstraint: canAttackFrom, toConstraint:
+          isNotMine);
     } else if (mode == MODE_MOVE) {
-      // select "from"
-      if (_from == null) {
-        // country selected must be mine
-        if (isNotMine(countryId)) return;
+      _handleMove(countryId, fromConstraint: isMine, toConstraint: isMine);
+    }
+  }
 
-        _from = countryId;
-        selectables = COUNTRIES[_from].neighbours.where(isMine).toList();
-      } else {
-        final neighbours = COUNTRIES[_from].neighbours;
+  _handleMove(String country, {bool fromConstraint(country), bool
+      toConstraint(country)}) {
+    // select "from"
+    if (_from == null) {
+      if (!fromConstraint(country)) return;
 
-        // "to" must be a neighbour of "from"
-        if (!neighbours.contains(countryId)) return;
+      _from = country;
+      selectables = COUNTRIES[_from].neighbours.where(toConstraint).toList();
+    } else {
+      final neighbours = COUNTRIES[_from].neighbours;
 
-        // "to" must be mine
-        if (isNotMine(countryId)) return;
+      // "to" must be a neighbour of "from"
+      if (!neighbours.contains(country)) return;
 
-        selectables = [];
-        dispatchEvent(new CustomEvent('move', detail: {
-          'from': _from,
-          'to': countryId
-        }));
-        _from = null;
-      }
-      return;
+      // "to" must not be mine
+      if (!toConstraint(country)) return;
+
+      selectables = [];
+      dispatchEvent(new CustomEvent('attack', detail: {
+        'from': _from,
+        'to': country
+      }));
+      _from = null;
     }
   }
 
