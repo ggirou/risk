@@ -14,6 +14,11 @@ import 'package:risk/polymer_transformer.dart';
 
 import 'board.dart';
 
+class Move {
+  String from, to;
+  int maxArmies;
+}
+
 @CustomTag('risk-game')
 class RiskGame extends PolymerElement {
   // Whether styles from the document apply to the contents of the component
@@ -27,7 +32,7 @@ class RiskGame extends PolymerElement {
   bool canStart = false;
 
   @observable
-  BattleEnded myLastBattleForMove;
+  Move pendingMove; // {'from':from, 'to': to}
 
   @observable
   int armiesToMove = 1;
@@ -63,7 +68,7 @@ class RiskGame extends PolymerElement {
       // TODO Show enrollement popup
       sendEvent(new JoinGame()
           ..playerId = playerId
-          ..name = 'player $playerId');
+          ..name = _ask("What's your name?"));
     } else if (event is PlayerJoined) {
       canStart = game.players.length >= 2 && game.players.keys.first ==
           playerId;
@@ -80,11 +85,14 @@ class RiskGame extends PolymerElement {
                 ..armies = 1);
           } else {
             armiesToMove = 1;
-            myLastBattleForMove = event;
+            pendingMove = new Move()
+                ..from = event.attacker.country
+                ..to = event.defender.country
+                ..maxArmies = event.attacker.remainingArmies - 1;
           }
         }
       } else if (event is ArmyMoved) {
-        myLastBattleForMove = null;
+        pendingMove = null;
       }
     }
 
@@ -107,7 +115,6 @@ class RiskGame extends PolymerElement {
     } else if (game.turnStep == TURN_STEP_REINFORCEMENT) {
       mode = MODE_MOVE;
     }
-    print('mode : $mode');
   }
 
   attack(CustomEvent e, var detail, Element target) => sendEvent(new Attack()
@@ -116,11 +123,10 @@ class RiskGame extends PolymerElement {
       ..to = e.detail['to']
       ..armies = min(3, game.countries[e.detail['from']].armies - 1));
 
-  move(CustomEvent e, var detail, Element target) => sendEvent(new MoveArmy()
-      ..playerId = playerId
+  move(CustomEvent e, var detail, Element target) => pendingMove = new Move()
       ..from = e.detail['from']
       ..to = e.detail['to']
-      ..armies = _askForArmies(1, game.countries[e.detail['from']].armies - 1));
+      ..maxArmies = game.countries[e.detail['from']].armies - 1;
 
   selection(CustomEvent e, var detail, Element target) => sendEvent(
       new PlaceArmy()
@@ -129,19 +135,9 @@ class RiskGame extends PolymerElement {
 
   moveOnConquer() => sendEvent(new MoveArmy()
       ..playerId = playerId
-      ..from = myLastBattleForMove.attacker.country
-      ..to = myLastBattleForMove.defender.country
+      ..from = pendingMove.from
+      ..to = pendingMove.to
       ..armies = armiesToMove);
-
-
-  int _askForArmies(int min, int max) {
-    // simple input with prompt for now
-    final result = _ask(
-        'How many armies do you want to move? (between $min and $max)');
-    final i = int.parse(result, onError: (_) => null);
-    if (i != null && i >= min && i <= max) return i;
-    return _askForArmies(min, max);
-  }
 
   String _ask(String question) => context.callMethod('prompt', [question]);
 

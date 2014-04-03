@@ -32,10 +32,10 @@
               It's up to you ! Select the forfication to make.
             </div>
           </template>
-          <template if='{{ myLastBattleForMove != null }}'>
+          <template if='{{ pendingMove != null }}'>
             <div style='text-align: center; padding: 1em;'>
-              <p>How many armies do you want to move from <strong>{{ myLastBattleForMove.attacker.country }}</strong> to <strong>{{ myLastBattleForMove.defender.country }}</strong>?</p>
-              <input type="range" value="{{ armiesToMove | asInteger }}" min="1" max="{{ myLastBattleForMove.attacker.remainingArmies - 1 }}" />
+              <p>How many armies do you want to move from <strong>{{ pendingMove.from }}</strong> to <strong>{{ pendingMove.to }}</strong>?</p>
+              <input type="range" value="{{ armiesToMove | asInteger }}" min="1" max="{{ pendingMove.from - 1 }}" />
               <button on-click='{{ moveOnConquer }}'>Move {{ armiesToMove }} armies</button>
             </div>
           </template>
