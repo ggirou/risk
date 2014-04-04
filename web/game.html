@@ -12,7 +12,7 @@
       <h1>Risk</h1>
       <div class="row">
         <!-- Risk Board -->
-        <risk-board id='board' game="{{ game }}" playerId="{{ playerId }}" mode="{{ mode }}" class="col-md-8"
+        <risk-board id='board' game="{{ game }}" playerId="{{ playerId }}" class="col-md-8"
           on-attack="{{ attack }}"
           on-move="{{ move }}"
           on-selection="{{ selection }}"></risk-board>
@@ -23,18 +23,18 @@
                 <h3 class="panel-title">It's up to you !</h3>
               </div>
               <div class="panel-body" style="text-align: center;">
-                <template if='{{ mode == "select" }}'>
+                <template if='{{ game.turnStep == "REINFORCEMENT" }}'>
                   <h3>Reinforcement</h3>
                   <p>Select one of your country to add one of the <strong>{{ game.players[playerId].reinforcement }}</strong> army left.</p>
                 </template>
-                <template if='{{ mode == "attack" }}'>
+                <template if='{{ game.turnStep == "ATTACK" }}'>
                   <h3>Attack</h3>
                   <template if='{{ pendingMove == null }}'>
                     <p>Select a country from which you want to engage a battle.</p>
                     <button on-click="{{ endAttack }}">End of attacks</button>
                   </template>
                 </template>
-                <template if='{{ mode == "move" }}'>
+                <template if='{{ game.turnStep == "FORTIFICATION" }}'>
                   <h3>Fortification</h3>
                   <template if='{{ pendingMove == null }}'>
                     <p>Select a country from which you want to perform the last move to make ofr this turn.</p>

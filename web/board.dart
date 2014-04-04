@@ -14,15 +14,6 @@ import 'package:risk/map.dart';
 final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
     '#F2A279', '#7182E3', '#92D169', '#BF607C', '#7CDDF7'];
 
-/// select on of my countries
-const String MODE_SELECT = 'select';
-
-/// select a battle to do
-const String MODE_ATTACK = 'attack';
-
-/// select a move to do
-const String MODE_MOVE = 'move';
-
 @CustomTag('risk-board')
 class RiskBoard extends PolymerElement {
   @observable
@@ -33,9 +24,6 @@ class RiskBoard extends PolymerElement {
 
   @published
   int playerId;
-
-  @published
-  String mode;
 
   @observable
   var svgPaths;
@@ -48,36 +36,37 @@ class RiskBoard extends PolymerElement {
   RiskBoard.created(): super.created() {
     HttpRequest.getString('svg-datas.json').then(JSON.decode).then((e) =>
         svgPaths = e);
-  }
-
-  modeChanged(String oldValue, String newValue) {
-    final countryIds = countries.map((c) => c.id);
-    if (newValue == MODE_SELECT) {
-      selectables = countryIds.where(isMine).toList();
-    } else if (newValue == MODE_ATTACK) {
-      selectables = countryIds.where(canAttackFrom).toList();
-    } else if (newValue == MODE_MOVE) {
-      selectables = countryIds.where(canFortifyFrom).toList();
-    } else {
-      selectables = [];
-    }
+    onPropertyChange(this, #game.turnStep, () {
+      if (game.activePlayerId == playerId) {
+        final countryIds = countries.map((c) => c.id);
+        if (game.turnStep == TURN_STEP_REINFORCEMENT) {
+          selectables = countryIds.where(isMine).toList();
+        } else if (game.turnStep == TURN_STEP_ATTACK) {
+          selectables = countryIds.where(canAttackFrom).toList();
+        } else if (game.turnStep == TURN_STEP_FORTIFICATION) {
+          selectables = countryIds.where(canFortifyFrom).toList();
+        }
+      } else {
+        selectables = [];
+      }
+    });
   }
 
   countryClick(Event e, var detail, Element target) {
-    if (mode == null) return;
+    if (game.turnStep == null) return;
 
     // country
     final countryId = target.dataset['country'];
 
-    if (mode == MODE_SELECT) {
+    if (game.turnStep == TURN_STEP_REINFORCEMENT) {
       // country selected is not mine
       if (isNotMine(countryId)) return;
 
       dispatchEvent(new CustomEvent('selection', detail: countryId));
-    } else if (mode == MODE_ATTACK) {
+    } else if (game.turnStep == TURN_STEP_ATTACK) {
       _handleMove(countryId, 'attack', fromConstraint: canAttackFrom,
           toConstraint: isNotMine);
-    } else if (mode == MODE_MOVE) {
+    } else if (game.turnStep == TURN_STEP_FORTIFICATION) {
       _handleMove(countryId, 'move', fromConstraint: canFortifyFrom,
           toConstraint: isMine);
     }
@@ -126,6 +115,7 @@ class RiskBoard extends PolymerElement {
 
   redraw() {
     notifyPropertyChange(#game, null, game);
+    notifyPropertyChange(#game.turnStep, null, game.turnStep);
     notifyPropertyChange(#countries, null, countries);
   }
 }

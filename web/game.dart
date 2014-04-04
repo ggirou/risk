@@ -42,9 +42,6 @@ class RiskGame extends PolymerElement {
   @observable
   int armiesToMove = 1;
 
-  @observable
-  String mode;
-
   final asInteger = new StringToInt();
 
   final WebSocket ws;
@@ -109,27 +106,10 @@ class RiskGame extends PolymerElement {
       }
     }
 
-    updateMode();
-
     super.notifyPropertyChange(#game, null, game);
     // can we do someting else ?
     ($['board'] as RiskBoard)
-        ..modeChanged(mode, mode)
         ..redraw();
-  }
-
-  updateMode() {
-    if (!game.started || !isMyTurn) {
-      mode = null;
-    } else if (game.setupPhase) {
-      mode = MODE_SELECT;
-    } else if (game.turnStep == TURN_STEP_REINFORCEMENT) {
-      mode = MODE_SELECT;
-    } else if (game.turnStep == TURN_STEP_ATTACK) {
-      mode = MODE_ATTACK;
-    } else if (game.turnStep == TURN_STEP_FORTIFICATION) {
-      mode = MODE_MOVE;
-    }
   }
 
   attack(CustomEvent e, var detail, Element target) => sendEvent(new Attack()
