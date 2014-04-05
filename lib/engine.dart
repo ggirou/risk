@@ -139,16 +139,14 @@ class RiskGameEngine {
   void onAttack(Attack event) {
     // if another player tries to play
     checkActivePlayer(event.playerId);
-    // Armies should be between 1 and 3
-    checkArmiesNumber(event.armies, max: 3);
+    // Armies should be between 1 and 3 and attacker must have enough armies in the from country
+    checkArmiesNumber(event.armies, min: 1, max: 3, countryId: event.from);
     // Check if from country is owned by the player
     checkCountryOwner(event.from, event.playerId);
     // Check if target country is owned by another player
     checkCountryOwner(event.to, event.playerId, notOwned: true);
     // The attacked country must be in the neighbourhood
     checkCountryNeighbourhood(event.from, event.to);
-    // Attacker must have enough armies in the from country
-    checkNeededArmiesFrom(event.from, event.armies);
 
     var defenderId = game.countries[event.to].playerId;
 
@@ -180,16 +178,14 @@ class RiskGameEngine {
   void onMove(MoveArmy event) {
     // if another player tries to play
     checkActivePlayer(event.playerId);
-    // Armies should be at least 1
-    checkArmiesNumber(event.armies, action: 'move');
+    // Armies should be at least 1 and it must have enough armies in the from country
+    checkArmiesNumber(event.armies, min: 1, countryId: event.from, action: 'move');
     // Check if from country is owned by the player
     checkCountryOwner(event.from, event.playerId);
     // Check if target country is owned by the player
     checkCountryOwner(event.to, event.playerId);
     // The attacked country must be in the neighbourhood
     checkCountryNeighbourhood(event.from, event.to);
-    // It must have enough armies in the from country
-    checkNeededArmiesFrom(event.from, event.armies);
     if (game.turnStep == TURN_STEP_ATTACK) {
       // Countries must be the same as last attack
       checkLastAttackCountries(event.from, event.to);
@@ -200,6 +196,7 @@ class RiskGameEngine {
         ..from = event.from
         ..to = event.to
         ..armies = event.armies);
+    lastBattle = null;
 
     if (game.turnStep == TURN_STEP_FORTIFICATION) {
       nextPlayer();
@@ -241,9 +238,7 @@ class RiskGameEngine {
   _publish(EngineEvent event) {
     game.update(event);
     history.add(event);
-    if (outputStream != null) {
-      outputStream.add(event);
-    }
+    outputStream.add(event);
   }
 
   /**
@@ -310,19 +305,19 @@ class RiskGameEngine {
   }
 
   /// Checks the number of armies bounds
-  checkArmiesNumber(int armies, {int min: 1, int max: null, String action:
+  checkArmiesNumber(int armies, {int min, int max: null, String countryId, String action:
       'attack'}) {
     if (min != null && armies < min) throw new EngineException(
         "Can't $action with less than $min armies");
     if (max != null && armies > max) throw new EngineException(
         "Can't $action with more than $max armies");
-  }
 
-  /// Checks if there is enough armies in country to attack or to move
-  checkNeededArmiesFrom(String countryId, int armies) {
-    checkCountryExists(countryId);
-    if (game.countries[countryId].armies - armies < 1) throw
-        new EngineException("There is not enough armies in country #${countryId}");
+    if(countryId != null) {
+      /// Checks if there is enough armies in country to attack or to move
+      checkCountryExists(countryId);
+      if (game.countries[countryId].armies - armies < 1) throw
+          new EngineException("There is not enough armies in country #${countryId}");
+    }
   }
 
   /// Checks if countries are the same as the last attack
