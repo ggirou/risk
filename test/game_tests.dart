@@ -102,7 +102,7 @@ testRiskGame() {
   RiskGame game;
 
   setUp(() {
-    game = riskGameInGame();
+    game = riskGameReinforcement();
   });
 
   test('should get countries owned by players', () {
@@ -165,7 +165,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.countries["eastern_australia"] = new CountryState(
         "eastern_australia", playerId: 0, armies: 1);
     expected.players[0].reinforcement--;
@@ -183,7 +183,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.countries["western_australia"].armies++;
     expected.players[1].reinforcement--;
 
@@ -200,7 +200,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.turnStep = TURN_STEP_REINFORCEMENT;
     expected.activePlayerId = 2;
     expected.players[2].reinforcement = 42;
@@ -225,7 +225,7 @@ testRiskGame() {
 
   test('on NextStep should set attack when reinforcement', () {
     // GIVEN
-    game = riskGameInGame();
+    game = riskGameReinforcement();
     game.turnStep = TURN_STEP_REINFORCEMENT;
     var event = new NextStep();
 
@@ -233,7 +233,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.turnStep = TURN_STEP_ATTACK;
 
     expectEquals(game, expected);
@@ -241,7 +241,7 @@ testRiskGame() {
 
   test('on NextStep should set step when attack', () {
     // GIVEN
-    game = riskGameInGame();
+    game = riskGameReinforcement();
     game.turnStep = TURN_STEP_ATTACK;
     var event = new NextStep();
 
@@ -249,7 +249,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.turnStep = TURN_STEP_FORTIFICATION;
 
     expectEquals(game, expected);
@@ -258,7 +258,7 @@ testRiskGame() {
   test('on NextStep should keep fortification step when already fortification',
       () {
     // GIVEN
-    game = riskGameInGame();
+    game = riskGameReinforcement();
     game.turnStep = TURN_STEP_FORTIFICATION;
     var event = new NextStep();
 
@@ -266,7 +266,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.turnStep = TURN_STEP_FORTIFICATION;
 
     expectEquals(game, expected);
@@ -291,7 +291,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.countries["western_australia"].armies = 2;
     expected.countries["indonesia"].armies = 1;
 
@@ -318,7 +318,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.countries["western_australia"].armies = 4;
     expected.countries["siam"].armies = 0;
     expected.countries["siam"].playerId = 1;
@@ -338,7 +338,7 @@ testRiskGame() {
     game.update(event);
 
     // THEN
-    var expected = riskGameInGame();
+    var expected = riskGameReinforcement();
     expected.countries["new_guinea"].armies -= 2;
     expected.countries["western_australia"].armies += 2;
 
