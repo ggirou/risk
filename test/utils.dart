@@ -4,8 +4,6 @@ import 'package:morph/morph.dart';
 import 'package:unittest/unittest.dart';
 import 'package:risk/game.dart';
 
-final _MORPH = new Morph();
-
 /*
  * Assert equality between [actual] and [expected] by reflection.
  */
@@ -16,9 +14,9 @@ void expectEquals(actual, expected, {String reason, FailureHandler
 }
 
 // TODO: comments
-PlayerState playerState({playerId: 123, name: "John", avatar: "avatar.png", color:
-    "blue", reinforcement: 0}) => new PlayerState(playerId, name, avatar, color,
-    reinforcement: reinforcement);
+PlayerState playerState({playerId: 123, name: "John", avatar:
+    "avatar.png", color: "blue", reinforcement: 0}) => new PlayerState(playerId,
+    name, avatar, color, reinforcement: reinforcement);
 
 RiskGame riskGamePlayerJoining() => new RiskGame()..players = {
       0: playerState(),
@@ -69,3 +67,12 @@ RiskGame riskGameAttacking() => riskGameReinforcement()
 RiskGame riskGameFortification() => riskGameAttacking()
     ..turnStep = TURN_STEP_FORTIFICATION;
 
+// When we try to serialize Observable object, we get an error on serializing `changes` value
+final ignoreObservableStreamType = new RiskGame().changes.runtimeType;
+final _MORPH = new Morph()..registerTypeAdapter(ignoreObservableStreamType,
+    new _ToNullSerializer());
+
+class _ToNullSerializer extends Serializer {
+  @override
+  serialize(object) => null;
+}

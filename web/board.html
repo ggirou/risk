@@ -49,19 +49,17 @@
       <image xlink:href="board.svg" width="100%" height="100%" />
 
       <g id="countries">
-        <template repeat="{{ country in countries }}">
-          <g on-click="{{ countryClick }}" class="country {{ {'selectable': selectables.contains(country.id)} }}" data-country="{{ country.id }}">
-            <path id="path-{{ country.id }}" class="shape" d="{{ svgPaths[country.id]['path'] }}"
-              fill="{{ color(country) }}">
+        <template repeat="{{ country in game.countries.values }}">
+          <g on-click="{{ countryClick }}" class="country {{ {'selectable': selectables.contains(country.countryId)} }}" data-country="{{ country.countryId }}">
+            <path id="path-{{ country.countryId }}" class="shape" d="{{ svgPaths[country.countryId]['path'] }}"
+              fill="{{ color(country.countryId) }}">
             </path>
             <!-- armies -->
-            <template if="{{ game.countries[country.id] != null }}">
-              <g transform="translate({{ svgPaths[country.id]['center']['x'] }},{{ svgPaths[country.id]['center']['y'] }})">
-                <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
-                <text text-anchor="middle" font-size="10"
-                      x="0" y="3">{{ game.countries[country.id].armies }}</text>
-              </g>
-            </template>
+            <g transform="translate({{ svgPaths[country.countryId]['center']['x'] }},{{ svgPaths[country.countryId]['center']['y'] }})">
+              <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
+              <text text-anchor="middle" font-size="10"
+                    x="0" y="3">{{ country.armies }}</text>
+            </g>
           </g>
         </template>
       </g>

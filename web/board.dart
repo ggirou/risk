@@ -14,28 +14,13 @@ import 'package:risk/map.dart';
 final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
     '#F2A279', '#7182E3', '#92D169', '#BF607C', '#7CDDF7'];
 
-/// select on of my countries
-const String MODE_SELECT = 'select';
-
-/// select a battle to do
-const String MODE_ATTACK = 'attack';
-
-/// select a move to do
-const String MODE_MOVE = 'move';
-
 @CustomTag('risk-board')
 class RiskBoard extends PolymerElement {
-  @observable
-  final Iterable<Country> countries = COUNTRIES.values;
-
   @published
   RiskGame game;
 
   @published
   int playerId;
-
-  @published
-  String mode;
 
   @observable
   var svgPaths;
@@ -48,40 +33,44 @@ class RiskBoard extends PolymerElement {
   RiskBoard.created(): super.created() {
     HttpRequest.getString('svg-datas.json').then(JSON.decode).then((e) =>
         svgPaths = e);
-  }
-
-  modeChanged(String oldValue, String newValue) {
-    final countryIds = countries.map((c) => c.id);
-    if (newValue == MODE_SELECT) {
-      selectables = countryIds.where(isMine).toList();
-    } else if (mode == MODE_ATTACK) {
-      selectables = countryIds.where(canAttackFrom).toList();
-    } else if (mode == MODE_MOVE) {
-      selectables = countryIds.where(isMine).toList();
-    }
+    onPropertyChange(this, #game.turnStep, () {
+      if (game.activePlayerId == playerId) {
+        final countryIds = COUNTRIES.keys;
+        if (game.turnStep == TURN_STEP_REINFORCEMENT) {
+          selectables = countryIds.where(isMine).toList();
+        } else if (game.turnStep == TURN_STEP_ATTACK) {
+          selectables = countryIds.where(canAttackFrom).toList();
+        } else if (game.turnStep == TURN_STEP_FORTIFICATION) {
+          selectables = countryIds.where(canFortifyFrom).toList();
+        }
+      } else {
+        selectables = [];
+      }
+    });
   }
 
   countryClick(Event e, var detail, Element target) {
-    if (mode == null) return;
+    if (game.turnStep == null) return;
 
     // country
     final countryId = target.dataset['country'];
 
-    if (mode == MODE_SELECT) {
+    if (game.turnStep == TURN_STEP_REINFORCEMENT) {
       // country selected is not mine
       if (isNotMine(countryId)) return;
 
       dispatchEvent(new CustomEvent('selection', detail: countryId));
-    } else if (mode == MODE_ATTACK) {
-      _handleMove(countryId, fromConstraint: canAttackFrom, toConstraint:
-          isNotMine);
-    } else if (mode == MODE_MOVE) {
-      _handleMove(countryId, fromConstraint: isMine, toConstraint: isMine);
+    } else if (game.turnStep == TURN_STEP_ATTACK) {
+      _handleMove(countryId, 'attack', fromConstraint: canAttackFrom,
+          toConstraint: isNotMine);
+    } else if (game.turnStep == TURN_STEP_FORTIFICATION) {
+      _handleMove(countryId, 'move', fromConstraint: canFortifyFrom,
+          toConstraint: isMine);
     }
   }
 
-  _handleMove(String country, {bool fromConstraint(country), bool
-      toConstraint(country)}) {
+  _handleMove(String country, String eventName, {bool
+      fromConstraint(country), bool toConstraint(country)}) {
     // select "from"
     if (_from == null) {
       if (!fromConstraint(country)) return;
@@ -98,7 +87,7 @@ class RiskBoard extends PolymerElement {
       if (!toConstraint(country)) return;
 
       selectables = [];
-      dispatchEvent(new CustomEvent('attack', detail: {
+      dispatchEvent(new CustomEvent(eventName, detail: {
         'from': _from,
         'to': country
       }));
@@ -111,15 +100,13 @@ class RiskBoard extends PolymerElement {
   bool canAttackFrom(String country) => isMine(country) &&
       game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
       isNotMine(to));
+  bool canFortifyFrom(String country) => isMine(country) &&
+      game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
+      isMine(to));
 
-  String color(Country country) {
-    final cs = game.countries[country.id];
+  String color(String countryId) {
+    final cs = game.countries[countryId];
     return cs == null || cs.playerId == null ? "white" : COLORS[cs.playerId %
         COLORS.length];
-  }
-
-  redraw() {
-    notifyPropertyChange(#game, null, game);
-    notifyPropertyChange(#countries, null, countries);
   }
 }
