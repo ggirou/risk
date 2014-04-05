@@ -7,12 +7,10 @@ import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
-import 'package:risk/game.dart' hide RiskGame;
-import 'package:risk/game.dart' as Game show RiskGame;
+import 'package:risk/snapshot.dart';
+import 'package:risk/game.dart' as Game;
 import 'package:risk/event.dart';
 import 'package:risk/polymer_transformer.dart';
-
-import 'board.dart';
 
 const AUTO_SETUP = false;
 
@@ -26,9 +24,10 @@ class RiskGame extends PolymerElement {
   // Whether styles from the document apply to the contents of the component
   bool get applyAuthorStyles => true;
 
-  final game = new Game.RiskGame()
-      ..countries = toObservable({})
-      ..players = toObservable({});
+  @observable Game.RiskGame game = new Game.RiskGame(); //..playHistory(SNAPSHOT_GAME_STARTED);
+
+  @observable
+  int playerId; // = 2;
 
   @observable
   bool isMyTurn = false;
@@ -45,9 +44,6 @@ class RiskGame extends PolymerElement {
   final asInteger = new StringToInt();
 
   final WebSocket ws;
-
-  @observable
-  int playerId;
 
   RiskGame.created(): this.fromUri(_currentWebSocketUri());
 
@@ -105,11 +101,6 @@ class RiskGame extends PolymerElement {
                 playerId).map((cs) => cs.countryId).toList()..shuffle()).first);
       }
     }
-
-    super.notifyPropertyChange(#game, null, game);
-    // can we do someting else ?
-    ($['board'] as RiskBoard)
-        ..redraw();
   }
 
   attack(CustomEvent e, var detail, Element target) => sendEvent(new Attack()
@@ -148,8 +139,9 @@ class RiskGame extends PolymerElement {
 }
 
 Uri _currentWebSocketUri() {
-  var uri = Uri.parse(window.location.toString());
-  return new Uri(scheme: "ws", host: uri.host, port: uri.port, path: "/ws");
+//  var uri = Uri.parse(window.location.toString());
+//  return new Uri(scheme: "ws", host: uri.host, port: uri.port, path: "/ws");
+  return new Uri(scheme: "ws", host: "localhost", port: 8080, path: "/ws");
 }
 
 _printEvent(direction) => (event) {

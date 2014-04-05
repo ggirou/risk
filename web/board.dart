@@ -16,9 +16,6 @@ final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
 
 @CustomTag('risk-board')
 class RiskBoard extends PolymerElement {
-  @observable
-  final Iterable<Country> countries = COUNTRIES.values;
-
   @published
   RiskGame game;
 
@@ -38,7 +35,7 @@ class RiskBoard extends PolymerElement {
         svgPaths = e);
     onPropertyChange(this, #game.turnStep, () {
       if (game.activePlayerId == playerId) {
-        final countryIds = countries.map((c) => c.id);
+        final countryIds = COUNTRIES.keys;
         if (game.turnStep == TURN_STEP_REINFORCEMENT) {
           selectables = countryIds.where(isMine).toList();
         } else if (game.turnStep == TURN_STEP_ATTACK) {
@@ -107,15 +104,9 @@ class RiskBoard extends PolymerElement {
       game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
       isMine(to));
 
-  String color(Country country) {
-    final cs = game.countries[country.id];
+  String color(String countryId) {
+    final cs = game.countries[countryId];
     return cs == null || cs.playerId == null ? "white" : COLORS[cs.playerId %
         COLORS.length];
-  }
-
-  redraw() {
-    notifyPropertyChange(#game, null, game);
-    notifyPropertyChange(#game.turnStep, null, game.turnStep);
-    notifyPropertyChange(#countries, null, countries);
   }
 }

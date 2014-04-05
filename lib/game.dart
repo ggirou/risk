@@ -1,5 +1,7 @@
 library risk.game;
 
+import 'package:observe/observe.dart';
+
 import 'dart:math';
 
 import 'event.dart';
@@ -13,25 +15,27 @@ const TURN_STEP_REINFORCEMENT = 'REINFORCEMENT';
 const TURN_STEP_ATTACK = 'ATTACK';
 const TURN_STEP_FORTIFICATION = 'FORTIFICATION';
 
-class RiskGame {
-  Map<String, CountryState> countries = {};
-  Map<int, PlayerState> players = {};
-  List<int> playersOrder = [];
-  int activePlayerId;
+class RiskGame extends Object with Observable {
+  @observable Map<String, CountryState> countries = toObservable({}, deep: true);
+  @observable Map<int, PlayerState> players = toObservable({}, deep: true);
+  @observable List<int> playersOrder = [];
+  @observable int activePlayerId;
 
-  bool started = false;
-  bool setupPhase = false;
-  String turnStep;
+  @observable bool started = false;
+  @observable bool setupPhase = false;
+  @observable String turnStep;
 
   RiskGame();
-  RiskGame.fromHistory(List<EngineEvent> events) {
+  
+  void playHistory(Iterable<EngineEvent> events) =>
     events.forEach(update);
-  }
 
   void update(EngineEvent event) {
     if (event is PlayerJoined) {
       players[event.playerId] = new PlayerState(event.playerId, event.name,
           event.avatar, event.color);
+      // Workaround before https://codereview.chromium.org/213743012/
+      notifyPropertyChange(#players, {}, players);
     } else if (event is GameStarted) {
       started = true;
       setupPhase = true;
@@ -41,6 +45,8 @@ class RiskGame {
       countries.putIfAbsent(event.country, () => new CountryState(event.country,
           playerId: event.playerId)).armies++;
       players[event.playerId].reinforcement--;
+      // Workaround before https://codereview.chromium.org/213743012/
+      notifyPropertyChange(#countries, {}, countries);
     } else if (event is NextPlayer) {
       activePlayerId = event.playerId;
       players[event.playerId].reinforcement = event.reinforcement;
@@ -68,20 +74,20 @@ class RiskGame {
 }
 
 // TODO: comments
-class CountryState {
+class CountryState extends Object with Observable {
   final String countryId;
-  int playerId;
-  int armies;
+  @observable int playerId;
+  @observable int armies;
   CountryState(this.countryId, {this.playerId, this.armies: 0});
 }
 
 // TODO: comments
-class PlayerState {
+class PlayerState extends Object with Observable {
   final int playerId;
   final String name;
   final String avatar;
   final String color;
-  int reinforcement;
+  @observable int reinforcement;
 
   PlayerState(this.playerId, this.name, this.avatar, this.color,
       {this.reinforcement: 0});
