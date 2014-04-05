@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'dart:js';
@@ -24,10 +25,11 @@ class RiskGame extends PolymerElement {
   // Whether styles from the document apply to the contents of the component
   bool get applyAuthorStyles => true;
 
-  @observable Game.RiskGame game = new Game.RiskGame(); //..playHistory(SNAPSHOT_GAME_STARTED);
+  @observable
+  Game.RiskGame game = new Game.RiskGame();
 
   @observable
-  int playerId; // = 2;
+  int playerId;
 
   @observable
   bool isMyTurn = false;
@@ -45,12 +47,12 @@ class RiskGame extends PolymerElement {
 
   final WebSocket ws;
 
-  RiskGame.created(): this.fromUri(_currentWebSocketUri());
+  RiskGame.created(): this.fromWebSocket(new WebSocket(_currentWebSocketUri(
+      ).toString())); // , snapshot: SNAPSHOT_GAME_ATTACK);
 
-  RiskGame.fromUri(Uri wsUri): this.fromWebSocket(new WebSocket(wsUri.toString()
-      ));
-
-  RiskGame.fromWebSocket(this.ws): super.created() {
+  RiskGame.fromWebSocket(this.ws, {Iterable<EngineEvent> snapshot: const []}):
+      super.created() {
+    new Stream.fromIterable(snapshot).listen(handleEvents);
     var eventStream = ws.onMessage.map((e) => e.data).map(JSON.decode).map(
         _printEvent("IN")).map(EVENT.decode).listen(handleEvents);
   }

@@ -50,7 +50,7 @@
 
       <g id="countries">
         <template repeat="{{ country in game.countries.values }}">
-          <g on-click="{{ countryClick }}" class="country {{ {'selectable': selectables.contains(country.countryId)} }}" data-country="{{ country.countryId }}">
+          <g on-click="{{ countryClick }}" class="country {{ {'selectable': selectableCountry(game.turnStep, selectedCountryId, country.countryId)} }}" data-country="{{ country.countryId }}">
             <path id="path-{{ country.countryId }}" class="shape" d="{{ svgPaths[country.countryId]['path'] }}"
               fill="{{ color(country.countryId) }}">
             </path>

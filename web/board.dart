@@ -26,75 +26,60 @@ class RiskBoard extends PolymerElement {
   var svgPaths;
 
   @observable
-  List<String> selectables = [];
-
-  String _from;
+  String selectedCountryId;
 
   RiskBoard.created(): super.created() {
     HttpRequest.getString('svg-datas.json').then(JSON.decode).then((e) =>
         svgPaths = e);
-    onPropertyChange(this, #game.turnStep, () {
-      if (game.activePlayerId == playerId) {
-        final countryIds = COUNTRIES.keys;
-        if (game.turnStep == TURN_STEP_REINFORCEMENT) {
-          selectables = countryIds.where(isMine).toList();
-        } else if (game.turnStep == TURN_STEP_ATTACK) {
-          selectables = countryIds.where(canAttackFrom).toList();
-        } else if (game.turnStep == TURN_STEP_FORTIFICATION) {
-          selectables = countryIds.where(canFortifyFrom).toList();
-        }
-      } else {
-        selectables = [];
-      }
-    });
   }
-
+  
+  selectableCountry(String turnStep, String selectedCountryId, String countryId) {
+    if(turnStep == TURN_STEP_REINFORCEMENT) {
+      if(isMine(countryId)) return true;
+    } else if(turnStep == TURN_STEP_ATTACK) {
+      if(countryId == selectedCountryId) return false;
+      else if(selectedCountryId == null && isMine(countryId)) return true;
+      else if(selectedCountryId != null && isNotMine(countryId) && areNeighbours(selectedCountryId, countryId)) return true;
+    } else if(turnStep == TURN_STEP_FORTIFICATION) {
+      if(countryId == selectedCountryId) return false;
+      else if(selectedCountryId == null && isMine(countryId)) return true;
+      else if(selectedCountryId != null && isMine(countryId) && areNeighbours(selectedCountryId, countryId)) return true;
+    }
+    return false;
+  }
+  
   countryClick(Event e, var detail, Element target) {
-    if (game.turnStep == null) return;
-
-    // country
-    final countryId = target.dataset['country'];
-
-    if (game.turnStep == TURN_STEP_REINFORCEMENT) {
-      // country selected is not mine
-      if (isNotMine(countryId)) return;
-
-      dispatchEvent(new CustomEvent('selection', detail: countryId));
-    } else if (game.turnStep == TURN_STEP_ATTACK) {
-      _handleMove(countryId, 'attack', fromConstraint: canAttackFrom,
-          toConstraint: isNotMine);
-    } else if (game.turnStep == TURN_STEP_FORTIFICATION) {
-      _handleMove(countryId, 'move', fromConstraint: canFortifyFrom,
-          toConstraint: isMine);
-    }
+    getClickHandler(game.turnStep, target.dataset['country'])(e, detail, target);
   }
 
-  _handleMove(String country, String eventName, {bool
-      fromConstraint(country), bool toConstraint(country)}) {
-    // select "from"
-    if (_from == null) {
-      if (!fromConstraint(country)) return;
-
-      _from = country;
-      selectables = COUNTRIES[_from].neighbours.where(toConstraint).toList();
-    } else {
-      final neighbours = COUNTRIES[_from].neighbours;
-
-      // "to" must be a neighbour of "from"
-      if (!neighbours.contains(country)) return;
-
-      // "to" must not be mine
-      if (!toConstraint(country)) return;
-
-      selectables = [];
-      dispatchEvent(new CustomEvent(eventName, detail: {
-        'from': _from,
-        'to': country
-      }));
-      _from = null;
+  getClickHandler(String turnStep, String countryId) {
+    if(turnStep == TURN_STEP_REINFORCEMENT) {
+      if(isMine(countryId)) return countryPlaceArmy;
+    } else if(turnStep == TURN_STEP_ATTACK) {
+      if(countryId == selectedCountryId) return countryUnselect;
+      else if(isMine(countryId)) return countrySelect;
+      else if(selectedCountryId != null && isNotMine(countryId) && areNeighbours(selectedCountryId, countryId)) return countryAttack;
+    } else if(turnStep == TURN_STEP_FORTIFICATION) {
+      if(countryId == selectedCountryId) return countryUnselect;
+      else if(isMine(countryId)) return countrySelect;
+      else if(selectedCountryId != null && isMine(countryId) && areNeighbours(selectedCountryId, countryId)) return countryMove;
     }
+    return countryUnselect;
   }
-
+  
+  countrySelect(Event e, var detail, Element target) => selectedCountryId = target.dataset['country'];
+  countryUnselect(Event e, var detail, Element target) => selectedCountryId = null;
+  countryPlaceArmy(Event e, var detail, Element target) =>
+    dispatchEvent(new CustomEvent('selection', detail: target.dataset['country']));
+  countryAttack(Event e, var detail, Element target) => dispatchEvent(new CustomEvent('attack', detail: {
+    'from': selectedCountryId,
+    'to': target.dataset['country']
+  }));
+  countryMove(Event e, var detail, Element target) => dispatchEvent(new CustomEvent('move', detail: {
+    'from': selectedCountryId,
+    'to': target.dataset['country']
+  }));
+  
   bool isMine(String country) => game.countries[country].playerId == playerId;
   bool isNotMine(String country) => !isMine(country);
   bool canAttackFrom(String country) => isMine(country) &&
@@ -103,6 +88,8 @@ class RiskBoard extends PolymerElement {
   bool canFortifyFrom(String country) => isMine(country) &&
       game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
       isMine(to));
+  bool areNeighbours(String myCountry, String strangeCountry) =>
+      COUNTRIES[myCountry].neighbours.contains(strangeCountry);
 
   String color(String countryId) {
     final cs = game.countries[countryId];
