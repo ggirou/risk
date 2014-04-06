@@ -4,12 +4,11 @@
 
 <polymer-element name="risk-game">
   <template>
-    <style>
-    </style>
+    <link rel="stylesheet" href="css/risk.css">
+    <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
 
     <section class="container-fluid">
-      <!-- TODO: better header -->
-      <h1>Risk</h1>
       <div class="row">
         <!-- Risk Board -->
         <risk-board id='board' game="{{ game }}" playerId="{{ playerId }}" class="col-md-8"
