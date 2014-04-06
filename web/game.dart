@@ -139,9 +139,9 @@ class RiskGame extends PolymerElement {
 }
 
 Uri _currentWebSocketUri() {
-//  var uri = Uri.parse(window.location.toString());
-//  return new Uri(scheme: "ws", host: uri.host, port: uri.port, path: "/ws");
-  return new Uri(scheme: "ws", host: "localhost", port: 8080, path: "/ws");
+  var uri = Uri.parse(window.location.toString());
+  return new Uri(scheme: "ws", host: uri.host, port: uri.port, path: "/ws");
+//  return new Uri(scheme: "ws", host: "localhost", port: 8080, path: "/ws");
 }
 
 _printEvent(direction) => (event) {

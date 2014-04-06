@@ -8,16 +8,18 @@ import 'package:risk/event.dart';
 import 'package:risk/game.dart';
 import 'package:risk/engine.dart';
 
-final int port = 8080;
+const DEFAULT_PORT = 8080;
+const DEFAULT_PATH = '../web';
 
 VirtualDirectory vDir;
 
-main() {
+main(List<String> args) {
+  int port = args.length > 0 ? int.parse(args[0], onError: (_) => DEFAULT_PORT) : DEFAULT_PORT;
+  String path = Platform.script.resolve(args.length > 1 ? args[1] : DEFAULT_PATH).toFilePath();
   runZoned(() {
-    HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((server) {
-      print("Risk is running on http://${server.address.address}:$port ");
-      vDir = new VirtualDirectory(Platform.script.resolve('../web').toFilePath()
-          )
+    HttpServer.bind(InternetAddress.ANY_IP_V4, port).then((server) {
+      print("Risk is running on http://localhost:$port\nBase path: $path");
+      vDir = new VirtualDirectory(path)
           ..jailRoot = false
           ..allowDirectoryListing = true
           ..directoryHandler = directoryHandler;
