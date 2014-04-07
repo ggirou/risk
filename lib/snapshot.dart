@@ -90,3 +90,14 @@ new ArmyPlaced()..playerId = 2..country = "eastern_australia",
 new SetupEnded(),
 new NextPlayer()..playerId = 2..reinforcement = 7,
 ];
+
+final List<EngineEvent> SNAPSHOT_GAME_ATTACK = SNAPSHOT_GAME_STARTED.toList()..addAll([
+new ArmyPlaced()..playerId = 2..country = "eastern_australia",
+new ArmyPlaced()..playerId = 2..country = "eastern_australia",
+new ArmyPlaced()..playerId = 2..country = "eastern_australia",
+new ArmyPlaced()..playerId = 2..country = "eastern_australia",
+new ArmyPlaced()..playerId = 2..country = "eastern_australia",
+new ArmyPlaced()..playerId = 2..country = "eastern_australia",
+new ArmyPlaced()..playerId = 2..country = "eastern_australia",
+new NextStep(),
+]);
