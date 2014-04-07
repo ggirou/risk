@@ -32,41 +32,34 @@ class RiskBoard extends PolymerElement {
     HttpRequest.getString('svg-datas.json').then(JSON.decode).then((e) =>
         svgPaths = e);
   }
-  
-  selectableCountry(String turnStep, String selectedCountryId, String countryId) {
-    if(turnStep == TURN_STEP_REINFORCEMENT) {
-      if(isMine(countryId)) return true;
-    } else if(turnStep == TURN_STEP_ATTACK) {
-      if(countryId == selectedCountryId) return false;
-      else if(selectedCountryId == null && isMine(countryId)) return true;
-      else if(selectedCountryId != null && isNotMine(countryId) && areNeighbours(selectedCountryId, countryId)) return true;
-    } else if(turnStep == TURN_STEP_FORTIFICATION) {
-      if(countryId == selectedCountryId) return false;
-      else if(selectedCountryId == null && isMine(countryId)) return true;
-      else if(selectedCountryId != null && isMine(countryId) && areNeighbours(selectedCountryId, countryId)) return true;
-    }
-    return false;
-  }
-  
-  countryClick(Event e, var detail, Element target) {
-    getClickHandler(game.turnStep, target.dataset['country'])(e, detail, target);
+
+  selectableCountry(int activePlayerId, String turnStep, String selectedCountryId, String countryId) {
+    var handler = getClickHandler(activePlayerId, turnStep, selectedCountryId, countryId);
+    return handler != countryUnselect && (selectedCountryId == null || handler != countrySelect);
   }
 
-  getClickHandler(String turnStep, String countryId) {
-    if(turnStep == TURN_STEP_REINFORCEMENT) {
+  countryClick(Event e, var detail, Element target) {
+    var handler = getClickHandler(game.activePlayerId, game.turnStep, selectedCountryId, target.dataset['country']);
+    handler(e, detail, target);
+  }
+
+  getClickHandler(int activePlayerId, String turnStep, String selectedCountryId, String countryId) {
+    if (activePlayerId != playerId) {
+      return countryUnselect;
+    } else if(turnStep == TURN_STEP_REINFORCEMENT) {
       if(isMine(countryId)) return countryPlaceArmy;
     } else if(turnStep == TURN_STEP_ATTACK) {
       if(countryId == selectedCountryId) return countryUnselect;
-      else if(isMine(countryId)) return countrySelect;
-      else if(selectedCountryId != null && isNotMine(countryId) && areNeighbours(selectedCountryId, countryId)) return countryAttack;
+      else if(canAttackFrom(countryId)) return countrySelect;
+      else if(selectedCountryId != null && canAttackTo(selectedCountryId, countryId)) return countryAttack;
     } else if(turnStep == TURN_STEP_FORTIFICATION) {
       if(countryId == selectedCountryId) return countryUnselect;
-      else if(isMine(countryId)) return countrySelect;
-      else if(selectedCountryId != null && isMine(countryId) && areNeighbours(selectedCountryId, countryId)) return countryMove;
+      else if(canFortifyFrom(countryId)) return countrySelect;
+      else if(selectedCountryId != null && canFortifyTo(selectedCountryId, countryId)) return countryMove;
     }
     return countryUnselect;
   }
-  
+
   countrySelect(Event e, var detail, Element target) => selectedCountryId = target.dataset['country'];
   countryUnselect(Event e, var detail, Element target) => selectedCountryId = null;
   countryPlaceArmy(Event e, var detail, Element target) =>
@@ -79,17 +72,21 @@ class RiskBoard extends PolymerElement {
     'from': selectedCountryId,
     'to': target.dataset['country']
   }));
-  
+
   bool isMine(String country) => game.countries[country].playerId == playerId;
   bool isNotMine(String country) => !isMine(country);
+  bool areNeighbours(String myCountry, String strangeCountry) =>
+      COUNTRIES[myCountry].neighbours.contains(strangeCountry);
   bool canAttackFrom(String country) => isMine(country) &&
       game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
       isNotMine(to));
+  bool canAttackTo(String from, String to) => isNotMine(to) &&
+      areNeighbours(from, to);
   bool canFortifyFrom(String country) => isMine(country) &&
       game.countries[country].armies > 1 && COUNTRIES[country].neighbours.any((to) =>
       isMine(to));
-  bool areNeighbours(String myCountry, String strangeCountry) =>
-      COUNTRIES[myCountry].neighbours.contains(strangeCountry);
+  bool canFortifyTo(String from, String to) => isMine(to) &&
+      areNeighbours(from, to);
 
   String color(String countryId) {
     final cs = game.countries[countryId];
