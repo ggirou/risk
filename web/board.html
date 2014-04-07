@@ -51,9 +51,9 @@
       <g id="countries">
         <template repeat="{{ country in game.countries.values }}">
           <g on-click="{{ countryClick }}" data-country="{{ country.countryId }}"
-            class="country {{ {'selectable': selectableCountry(game.activePlayerId, game.turnStep, selectedCountryId, country.countryId)} }}">
+            class="country {{ {'selectable': selectableCountry(game.activePlayerId, game.turnStep, selectedCountryId, country)} }}">
             <path id="path-{{ country.countryId }}" class="shape" d="{{ svgPaths[country.countryId]['path'] }}"
-              fill="{{ color(country.countryId) }}">
+              fill="{{ country.playerId | color }}">
             </path>
             <!-- armies -->
             <g transform="translate({{ svgPaths[country.countryId]['center']['x'] }},{{ svgPaths[country.countryId]['center']['y'] }})">

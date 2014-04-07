@@ -33,8 +33,8 @@ class RiskBoard extends PolymerElement {
         svgPaths = e);
   }
 
-  selectableCountry(int activePlayerId, String turnStep, String selectedCountryId, String countryId) {
-    var handler = getClickHandler(activePlayerId, turnStep, selectedCountryId, countryId);
+  selectableCountry(int activePlayerId, String turnStep, String selectedCountryId, CountryState country) {
+    var handler = getClickHandler(activePlayerId, turnStep, selectedCountryId, country.countryId);
     return handler != countryUnselect && (selectedCountryId == null || handler != countrySelect);
   }
 
@@ -88,9 +88,7 @@ class RiskBoard extends PolymerElement {
   bool canFortifyTo(String from, String to) => isMine(to) &&
       areNeighbours(from, to);
 
-  String color(String countryId) {
-    final cs = game.countries[countryId];
-    return cs == null || cs.playerId == null ? "white" : COLORS[cs.playerId %
-        COLORS.length];
+  String color(int playerId) {
+    return playerId == null ? "white" : COLORS[playerId % COLORS.length];
   }
 }
