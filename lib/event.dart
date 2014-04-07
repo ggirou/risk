@@ -1,6 +1,6 @@
 library risk.event;
 
-@MirrorsUsed(override: '*')
+@MirrorsUsed(targets: const ['risk.event'])
 import 'dart:mirrors';
 import 'dart:convert';
 import 'package:morph/morph.dart';
