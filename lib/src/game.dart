@@ -1,11 +1,4 @@
-library risk.game;
-
-import 'package:observe/observe.dart';
-
-import 'dart:math';
-
-import 'event.dart';
-import 'map.dart';
+part of risk;
 
 /**
  * Stores the Risk game state.

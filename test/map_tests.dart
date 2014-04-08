@@ -1,7 +1,7 @@
 library risk.map.test;
 
 import 'package:unittest/unittest.dart';
-import 'package:risk/map.dart';
+import 'package:risk/server.dart';
 
 main() {
   test('there should be 6 continents', () {

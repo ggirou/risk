@@ -1,4 +1,4 @@
-library risk.event;
+part of risk;
 
 //////////////// PLAYER EVENTS
 

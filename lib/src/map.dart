@@ -1,4 +1,4 @@
-library risk.map;
+part of risk;
 
 class Continent {
   final String id;

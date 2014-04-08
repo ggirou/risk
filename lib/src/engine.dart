@@ -1,10 +1,4 @@
-library risk.engine;
-
-import 'dart:async';
-import 'dart:math';
-
-import 'event.dart';
-import 'game.dart';
+part of risk;
 
 bool autoSetup = new String.fromEnvironment('autoSetup', defaultValue: 'true')
     == 'true';

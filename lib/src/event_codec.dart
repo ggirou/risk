@@ -1,11 +1,4 @@
-library risk.event.codec;
-
-@MirrorsUsed(targets: const ['risk.event'])
-import 'dart:mirrors';
-import 'dart:convert';
-import 'package:morph/morph.dart';
-
-import 'event.dart';
+part of risk;
 
 const EVENT = const EventCodec();
 final _MORPH = new Morph();

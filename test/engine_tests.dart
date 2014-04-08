@@ -3,9 +3,7 @@ library risk.engine.test;
 import 'dart:async';
 import 'package:unittest/unittest.dart';
 import 'package:mock/mock.dart';
-import 'package:risk/game.dart';
-import 'package:risk/engine.dart';
-import 'package:risk/event.dart';
+import 'package:risk/server.dart';
 import 'utils.dart';
 
 main() {
