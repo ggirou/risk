@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:html';
 import 'package:risk/event.dart';
+import 'package:risk/event_codec.dart';
 
 final playerEvents = {
   "JoinGame": (playerId) => new JoinGame()

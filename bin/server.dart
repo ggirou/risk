@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http_server/http_server.dart' show VirtualDirectory;
 import 'package:risk/event.dart';
+import 'package:risk/event_codec.dart';
 import 'package:risk/game.dart';
 import 'package:risk/engine.dart';
 

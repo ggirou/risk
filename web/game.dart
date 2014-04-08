@@ -10,6 +10,7 @@ import 'dart:mirrors';
 import 'package:polymer/polymer.dart';
 import 'package:risk/game.dart' as Game;
 import 'package:risk/event.dart';
+import 'package:risk/event_codec.dart';
 import 'package:risk/polymer_transformer.dart';
 
 const AUTO_SETUP = false;
