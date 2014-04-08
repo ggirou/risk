@@ -31,9 +31,6 @@ class RiskGame extends PolymerElement {
   int playerId;
 
   @observable
-  bool canStart = false;
-
-  @observable
   Move pendingMove; // {'from':from, 'to': to}
 
   @observable
@@ -65,11 +62,6 @@ class RiskGame extends PolymerElement {
       sendEvent(new JoinGame()
           ..playerId = playerId
           ..name = _ask("What's your name?"));
-    } else if (event is PlayerJoined) {
-      canStart = game.players.length >= 2 && game.players.keys.first ==
-          playerId;
-    } else if (event is GameStarted) {
-      canStart = false;
     } else if (event is BattleEnded) {
       if (event.attacker.playerId == playerId) {
         if (event.defender.remainingArmies == 0) {

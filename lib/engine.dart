@@ -71,7 +71,7 @@ class RiskGameEngine {
 
   void onStartGame(StartGame event) {
     // Only the first connected player can start the game
-    checkFirstPlayer(event.playerId);
+    // checkFirstPlayer(event.playerId);
     // Checks if it the game is already started.
     checkGameNotStarted();
 
