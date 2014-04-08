@@ -8,6 +8,25 @@
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
 
+    <style>
+      #avatars {
+        text-align: center;
+        padding: 0;
+        margin: 1em 0;
+      }
+      #avatars li {
+        list-style-type: none;
+        padding: 0.5em 1em;
+        margin: 0 1em;
+        display: inline-block;
+        border: 2px solid lightgray;
+        border-radius: 10px;
+      }
+      #avatars li.active {
+        border-color: black;
+      }
+    </style>
+
     <section class="container-fluid">
       <div class="row">
         <!-- Risk Board -->
@@ -16,6 +35,24 @@
           on-move="{{ move }}"
           on-selection="{{ selection }}"></risk-board>
         <div class="col-md-4">
+
+          <template if='{{ !game.started && game.players.length >= 2 }}'>
+            <div style='text-align: center; padding: 1em;'>
+              <button on-click='{{ startGame }}'>Start Game</button>
+            </div>
+          </template>
+
+          <!-- Players List -->
+          <ul id="avatars">
+            <template repeat="{{ player in game.players.values }}">
+              <li class="{{ {'active': player.playerId == game.activePlayerId} }}" style="background-color: {{ player.color }}">
+                <img src="img/avatars/{{ player.avatar }}" class="img-rounded" alt="Avatar"><br>
+                {{ player.name }}
+              </li>
+            </template>
+          </ul>
+
+          <!-- my actions -->
           <template if='{{ playerId == game.activePlayerId }}'>
             <div class="panel panel-default">
               <div class="panel-heading">
@@ -50,27 +87,7 @@
               </div>
             </div>
           </template>
-          <template if='{{ !game.started && game.players.length >= 2 }}'>
-            <div style='text-align: center; padding: 1em;'>
-              <button on-click='{{ startGame }}'>Start Game</button>
-            </div>
-          </template>
-          <!-- Players List -->
-          <ul id="avatars" class="nav nav-pills nav-stacked navbar-inverse img-rounded">
-            <template repeat="{{ player in game.players.values }}">
-              <li class="{{ {'active': player.playerId == game.activePlayerId} }}">
-                <a>
-                  <img src="img/avatars/{{ player.avatar }}.png" class="img-rounded" alt="Avatar">
-                  <span><b>{{ player.name }}</b></span>
-                  <span class="badge pull-right">
-                    <i class="riskicon riskicon-soldier"></i>
-                    <i class="riskicon riskicon-soldier"></i>
-                    0
-                  </span>
-                </a>
-              </li>
-            </template>
-          </ul>
+
           <!-- Game history -->
           <div id="history" class="panel panel-default">
             <div class="panel-heading">
