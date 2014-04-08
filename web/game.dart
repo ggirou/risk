@@ -8,7 +8,6 @@ import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
-import 'package:risk/snapshot.dart';
 import 'package:risk/game.dart' as Game;
 import 'package:risk/event.dart';
 import 'package:risk/polymer_transformer.dart';
@@ -30,9 +29,6 @@ class RiskGame extends PolymerElement {
 
   @observable
   int playerId;
-
-  @observable
-  bool isMyTurn = false;
 
   @observable
   bool canStart = false;
@@ -95,8 +91,7 @@ class RiskGame extends PolymerElement {
     } else if (event is ArmyMoved) {
       pendingMove = null;
     } else if (event is NextPlayer) {
-      isMyTurn = event.playerId == playerId;
-      if (AUTO_SETUP && game.setupPhase && isMyTurn) {
+      if (AUTO_SETUP && game.setupPhase && event.playerId == playerId) {
         sendEvent(new PlaceArmy()
             ..playerId = playerId
             ..country = (game.countries.values.where((cs) => cs.playerId ==

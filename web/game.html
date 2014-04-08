@@ -16,7 +16,7 @@
           on-move="{{ move }}"
           on-selection="{{ selection }}"></risk-board>
         <div class="col-md-4">
-          <template if='{{ isMyTurn }}'>
+          <template if='{{ playerId == game.activePlayerId }}'>
             <div class="panel panel-default">
               <div class="panel-heading">
                 <h3 class="panel-title">It's up to you !</h3>
