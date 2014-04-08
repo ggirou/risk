@@ -18,13 +18,23 @@ abstract class RiskGameState {
   static const TURN_STEP_ATTACK = 'ATTACK';
   static const TURN_STEP_FORTIFICATION = 'FORTIFICATION';
 
+  /// Returns all possible countryIds
+  List<String> get allCountryIds;
+
+  /// Returns the countryId / country state map.
   Map<String, CountryState> get countries;
+  /// Returns the playerId / player state map.
   Map<int, PlayerState> get players;
+  /// Returns the players order.
   List<int> get playersOrder;
+  /// Returns the player who is playing.
   int get activePlayerId;
 
+  /// True if the game is started.
   bool get started;
+  /// True if the game is setuping player countries.
   bool get setupPhase;
+  /// Return the turn step of the active player (REINFORCEMENT, ATTACK, FORTIFICATION).
   String get turnStep;
 
   /**
@@ -44,14 +54,22 @@ abstract class RiskGameState {
    * If reinforcement is less than three, round up to three.
    */
   int computeReinforcement(int playerId);
+
+  /**
+   * Returns neighbours ids for the given [countryId].
+   */
+  List<String> countryNeighbours(String countryId);
 }
 
 /**
  * Stores the state of a country.
  */
 abstract class CountryState {
+  /// The countryId for this CountryState.
   String get countryId;
+  /// The playerId who owns this country.
   int get playerId;
+  /// The number of armies in this country.
   int get armies;
 }
 
@@ -59,10 +77,15 @@ abstract class CountryState {
  * Stores the state of a player.
  */
 abstract class PlayerState {
+  /// The playerId for this CountryState.
   int get playerId;
+  /// The player's name.
   String get name;
+  /// The player's avatar.
   String get avatar;
+  /// The player's color.
   String get color;
+  /// The number of available armies for the player.
   int get reinforcement;
 }
 
@@ -139,6 +162,9 @@ class RiskGameStateImpl extends RiskGameState with Observable {
     var bonus = continents.map((c) => c.bonus).fold(0, (a, b) => a + b);
     return max(3, playerCountries.length ~/ 3 + bonus);
   }
+
+  List<String> get allCountryIds => COUNTRIES.keys.toList();
+  List<String> countryNeighbours(String countryId) => COUNTRIES[countryId].neighbours;
 }
 
 class CountryStateImpl extends CountryState with Observable {

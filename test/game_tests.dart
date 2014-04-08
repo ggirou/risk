@@ -7,9 +7,24 @@ import 'package:risk/event.dart';
 import 'utils.dart';
 
 main() {
+  group('Game countries', testGameCountries);
   group('Dices attack computation', testDicesAttackComputation);
   group('Reinforcement computation', testReinforcementComputation);
-  group('RiskGame', testRiskGame);
+  group('RiskGame.update', testRiskGame);
+}
+
+testGameCountries() {
+  var game = new RiskGameStateImpl();
+
+  test('allCountryIds should return all country ids', () {
+    expect(game.allCountryIds, equals(COUNTRIES.keys));
+  });
+
+  COUNTRIES.forEach((countryId, country) {
+    test('$countryId should have specified neighbours', () {
+      expect(game.countryNeighbours(countryId), equals(country.neighbours));
+    });
+  });
 }
 
 testDicesAttackComputation() {

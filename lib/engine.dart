@@ -4,7 +4,6 @@ import 'dart:async';
 import 'dart:math';
 
 import 'event.dart';
-import 'map.dart';
 import 'game.dart';
 
 bool autoSetup = new String.fromEnvironment('autoSetup', defaultValue: 'true')
@@ -86,7 +85,7 @@ class RiskGameEngine {
         ..playersOrder = hazard.giveOrders(game.players.keys));
 
     // add one army on every country
-    final groupsOfCountries = hazard.split(COUNTRIES.keys, game.players.length);
+    final groupsOfCountries = hazard.split(game.allCountryIds, game.players.length);
     final countries = {};
     int i = 0;
     game.players.keys.forEach((playerId) {
@@ -279,7 +278,7 @@ class RiskGameEngine {
 
   /// Checks if the country exists.
   checkCountryExists(String countryId) {
-    if (!COUNTRIES.containsKey(countryId)) throw new EngineException(
+    if (!game.allCountryIds.contains(countryId)) throw new EngineException(
         "Country #$countryId doesn't exist");
   }
 
@@ -287,7 +286,7 @@ class RiskGameEngine {
   checkCountryNeighbourhood(String countryAId, String countryBId) {
     checkCountryExists(countryAId);
     checkCountryExists(countryBId);
-    if (!COUNTRIES[countryAId].neighbours.contains(countryBId)) throw
+    if (!game.countryNeighbours(countryAId).contains(countryBId)) throw
         new EngineException(
         "Country #$countryAId is not in neighbourhood of #$countryBId");
   }
