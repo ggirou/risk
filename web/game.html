@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <link rel="import" href="board.html">
+<link rel="import" href="player.html">
 
 <polymer-element name="risk-game">
   <template>
@@ -14,16 +15,8 @@
         padding: 0;
         margin: 1em 0;
       }
-      #avatars li {
-        list-style-type: none;
-        padding: 0.5em 1em;
-        margin: 0 1em;
+      #avatars risk-player-vignette {
         display: inline-block;
-        border: 2px solid lightgray;
-        border-radius: 10px;
-      }
-      #avatars li.active {
-        border-color: black;
       }
     </style>
 
@@ -43,14 +36,11 @@
           </template>
 
           <!-- Players List -->
-          <ul id="avatars">
+          <div id="avatars">
             <template repeat="{{ player in game.players.values }}">
-              <li class="{{ {'active': player.playerId == game.activePlayerId} }}" style="background-color: {{ player.color }}">
-                <img src="img/avatars/{{ player.avatar }}" class="img-rounded" alt="Avatar"><br>
-                {{ player.name }}
-              </li>
+              <risk-player-vignette player="{{ player }}" active="{{ player.playerId == game.activePlayerId }}"></risk-player-vignette>
             </template>
-          </ul>
+          </div>
 
           <!-- my actions -->
           <template if='{{ playerId == game.activePlayerId }}'>
