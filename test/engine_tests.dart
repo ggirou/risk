@@ -131,7 +131,7 @@ testRiskGameEngine() {
             ..reinforcement = 35]);
     });
 
-    test('should NOT start game when it is not the master player', () {
+    skip_test('should NOT start game when it is not the master player', () {
       // GIVEN
       var event = new StartGame()..playerId = 2;
 

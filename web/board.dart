@@ -10,10 +10,6 @@ import 'package:polymer/polymer.dart';
 import 'package:risk/game.dart';
 import 'package:risk/map.dart';
 
-// grabbed on http://i.stack.imgur.com/VewLV.png (http://gamedev.stackexchange.com/questions/46463/is-there-an-optimum-set-of-colors-for-10-players)
-final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
-    '#F2A279', '#7182E3', '#92D169', '#BF607C', '#7CDDF7'];
-
 @CustomTag('risk-board')
 class RiskBoard extends PolymerElement {
   @published
@@ -89,6 +85,6 @@ class RiskBoard extends PolymerElement {
       areNeighbours(from, to);
 
   String color(int playerId) {
-    return playerId == null ? "white" : COLORS[playerId % COLORS.length];
+    return playerId == null ? "white" : game.players[playerId].color;
   }
 }

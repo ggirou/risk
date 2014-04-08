@@ -8,12 +8,19 @@ import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
-import 'package:risk/snapshot.dart';
 import 'package:risk/game.dart' as Game;
 import 'package:risk/event.dart';
 import 'package:risk/polymer_transformer.dart';
 
 const AUTO_SETUP = false;
+
+// grabbed on http://i.stack.imgur.com/VewLV.png (http://gamedev.stackexchange.com/questions/46463/is-there-an-optimum-set-of-colors-for-10-players)
+final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
+    '#F2A279', '#7182E3', '#92D169', '#BF607C', '#7CDDF7'];
+final AVATARS = ['ahmadi-nejad.png', 'bachar-el-assad.png', 'caesar.png',
+    'castro.png', 'hitler.png', 'kadhafi.png', 'kim-jong-il.png', 'mao-zedong.png',
+    'mussolini.png', 'napoleon.png', 'pinochet.png', 'saddam-hussein.png',
+    'staline.png'];
 
 class Move {
   String from, to;
@@ -30,12 +37,6 @@ class RiskGame extends PolymerElement {
 
   @observable
   int playerId;
-
-  @observable
-  bool isMyTurn = false;
-
-  @observable
-  bool canStart = false;
 
   @observable
   Move pendingMove; // {'from':from, 'to': to}
@@ -68,12 +69,9 @@ class RiskGame extends PolymerElement {
       // TODO Show enrollement popup
       sendEvent(new JoinGame()
           ..playerId = playerId
+          ..color = COLORS[playerId % COLORS.length]
+          ..avatar = AVATARS[playerId % AVATARS.length]
           ..name = _ask("What's your name?"));
-    } else if (event is PlayerJoined) {
-      canStart = game.players.length >= 2 && game.players.keys.first ==
-          playerId;
-    } else if (event is GameStarted) {
-      canStart = false;
     } else if (event is BattleEnded) {
       if (event.attacker.playerId == playerId) {
         if (event.defender.remainingArmies == 0) {
@@ -95,8 +93,7 @@ class RiskGame extends PolymerElement {
     } else if (event is ArmyMoved) {
       pendingMove = null;
     } else if (event is NextPlayer) {
-      isMyTurn = event.playerId == playerId;
-      if (AUTO_SETUP && game.setupPhase && isMyTurn) {
+      if (AUTO_SETUP && game.setupPhase && event.playerId == playerId) {
         sendEvent(new PlaceArmy()
             ..playerId = playerId
             ..country = (game.countries.values.where((cs) => cs.playerId ==
@@ -143,7 +140,7 @@ class RiskGame extends PolymerElement {
 Uri _currentWebSocketUri() {
   var uri = Uri.parse(window.location.toString());
   return new Uri(scheme: "ws", host: uri.host, port: uri.port, path: "/ws");
-//  return new Uri(scheme: "ws", host: "localhost", port: 8080, path: "/ws");
+  //  return new Uri(scheme: "ws", host: "localhost", port: 8080, path: "/ws");
 }
 
 _printEvent(direction) => (event) {

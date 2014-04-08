@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 
 <link rel="import" href="board.html">
+<link rel="import" href="player.html">
 
 <polymer-element name="risk-game">
   <template>
     <link rel="stylesheet" href="css/risk.css">
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
+
+    <style>
+      #avatars {
+        text-align: center;
+        padding: 0;
+        margin: 1em 0;
+      }
+      #avatars risk-player-vignette {
+        display: inline-block;
+      }
+    </style>
 
     <section class="container-fluid">
       <div class="row">
@@ -16,7 +28,22 @@
           on-move="{{ move }}"
           on-selection="{{ selection }}"></risk-board>
         <div class="col-md-4">
-          <template if='{{ isMyTurn }}'>
+
+          <template if='{{ !game.started && game.players.length >= 2 }}'>
+            <div style='text-align: center; padding: 1em;'>
+              <button on-click='{{ startGame }}'>Start Game</button>
+            </div>
+          </template>
+
+          <!-- Players List -->
+          <div id="avatars">
+            <template repeat="{{ player in game.players.values }}">
+              <risk-player-vignette player="{{ player }}" active="{{ player.playerId == game.activePlayerId }}"></risk-player-vignette>
+            </template>
+          </div>
+
+          <!-- my actions -->
+          <template if='{{ playerId == game.activePlayerId }}'>
             <div class="panel panel-default">
               <div class="panel-heading">
                 <h3 class="panel-title">It's up to you !</h3>
@@ -50,27 +77,7 @@
               </div>
             </div>
           </template>
-          <template if='{{ canStart }}'>
-            <div style='text-align: center; padding: 1em;'>
-              <button on-click='{{ startGame }}'>Start Game</button>
-            </div>
-          </template>
-          <!-- Players List -->
-          <ul id="avatars" class="nav nav-pills nav-stacked navbar-inverse img-rounded">
-            <template repeat="{{ player in game.players.values }}">
-              <li class="{{ {'active': player.playerId == game.activePlayerId} }}">
-                <a>
-                  <img src="img/avatars/{{ player.avatar }}.png" class="img-rounded" alt="Avatar">
-                  <span><b>{{ player.name }}</b></span>
-                  <span class="badge pull-right">
-                    <i class="riskicon riskicon-soldier"></i>
-                    <i class="riskicon riskicon-soldier"></i>
-                    0
-                  </span>
-                </a>
-              </li>
-            </template>
-          </ul>
+
           <!-- Game history -->
           <div id="history" class="panel panel-default">
             <div class="panel-heading">
