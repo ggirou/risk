@@ -11,12 +11,21 @@
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
   </head>
   <body>
+    <header class="navbar navbar-default navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">Risk</a>
+          <ul class="nav navbar-nav">
+            <li><a href="/new">New Game</a></li>
+          </ul>
+        </div>
+      </div>
+    </header>
+
     <section class="container-fluid">
-      <!-- TODO: better header -->
-      <h1>Risk</h1>
       <div class="row">
         <!-- Risk Board -->
-        <img src="board.svg" class="col-md-8">
+        <img src="img/board.svg" class="col-md-8">
         <div class="col-md-4">
           <!-- Players List -->
           <ul id="avatars" class="nav nav-pills nav-stacked navbar-inverse img-rounded">
@@ -81,7 +90,7 @@
         </div>
       </div>
     </section>
-    
+
     <!-- <div class="modal fade">  -->
       <div class="modal-dialog">
         <div class="modal-content">
