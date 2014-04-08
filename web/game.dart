@@ -33,7 +33,7 @@ class RiskGame extends PolymerElement {
   bool get applyAuthorStyles => true;
 
   @observable
-  Game.RiskGame game = new Game.RiskGame();
+  Game.RiskGameState game = new Game.RiskGameStateImpl();
 
   @observable
   int playerId;

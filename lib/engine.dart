@@ -17,7 +17,7 @@ class EngineException {
 }
 
 class RiskGameEngine {
-  final RiskGame game;
+  final RiskGameState game;
   final EventSink<EngineEvent> outputStream;
   final List<EngineEvent> history = [];
 
@@ -64,7 +64,7 @@ class RiskGameEngine {
         ..avatar = event.avatar
         ..color = event.color);
 
-    if (game.players.length == PLAYERS_MAX) {
+    if (game.players.length == RiskGameState.PLAYERS_MAX) {
       startGame();
     }
   }
@@ -75,14 +75,14 @@ class RiskGameEngine {
     // Checks if it the game is already started.
     checkGameNotStarted();
 
-    if (game.players.length >= PLAYERS_MIN) {
+    if (game.players.length >= RiskGameState.PLAYERS_MIN) {
       startGame();
     }
   }
 
   void startGame() {
     _publish(new GameStarted()
-        ..armies = START_ARMIES[game.players.length]
+        ..armies = RiskGameState.START_ARMIES[game.players.length]
         ..playersOrder = hazard.giveOrders(game.players.keys));
 
     // add one army on every country
@@ -159,7 +159,7 @@ class RiskGameEngine {
         ..dices = hazard.rollDices(min(2, game.countries[event.to].armies))
         ..country = event.to;
 
-    var attackerLoss = computeAttackerLoss(attacker.dices, defender.dices);
+    var attackerLoss = game.computeAttackerLoss(attacker.dices, defender.dices);
     var defenderLoss = defender.dices.length - attackerLoss;
 
     attacker.remainingArmies = game.countries[attacker.country].armies -
@@ -186,7 +186,7 @@ class RiskGameEngine {
     checkCountryOwner(event.to, event.playerId);
     // The attacked country must be in the neighbourhood
     checkCountryNeighbourhood(event.from, event.to);
-    if (game.turnStep == TURN_STEP_ATTACK) {
+    if (game.turnStep == RiskGameState.TURN_STEP_ATTACK) {
       // Countries must be the same as last attack
       checkLastAttackCountries(event.from, event.to);
     }
@@ -198,7 +198,7 @@ class RiskGameEngine {
         ..armies = event.armies);
     lastBattle = null;
 
-    if (game.turnStep == TURN_STEP_FORTIFICATION) {
+    if (game.turnStep == RiskGameState.TURN_STEP_FORTIFICATION) {
       nextPlayer();
     }
   }
@@ -227,7 +227,7 @@ class RiskGameEngine {
         game.activePlayerId) + 1;
     int nextPlayerId = orders[nextPlayerIndex % orders.length];
     int reinforcement = game.setupPhase ?
-        game.players[nextPlayerId].reinforcement : computeReinforcement(game,
+        game.players[nextPlayerId].reinforcement : game.computeReinforcement(
         nextPlayerId);
 
     _publish(new NextPlayer()

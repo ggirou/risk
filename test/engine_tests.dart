@@ -16,10 +16,11 @@ testRiskGameEngine() {
   HazardMock hazard;
   StreamController outputStream;
   RiskGameEngine engine;
+  RiskGameStateImpl engineGame() => engine.game;
 
   rethrowHandler(e) => throw e;
 
-  RiskGameEngine riskGameEngine(RiskGame game) => new RiskGameEngine(
+  RiskGameEngine riskGameEngine(RiskGameState game) => new RiskGameEngine(
       outputStream, game, hazard: hazard, exceptionHandler: rethrowHandler);
 
   setUp(() {
@@ -69,7 +70,7 @@ testRiskGameEngine() {
 
       // THEN
       var expected = riskGamePlayerJoining();
-      expected.players[123] = new PlayerState(123, "John Lennon", "kadhafi.png",
+      expected.players[123] = new PlayerStateImpl(123, "John Lennon", "kadhafi.png",
           "red");
 
       expectEquals(engine.game, expected);
@@ -107,7 +108,7 @@ testRiskGameEngine() {
     test('should start game', () {
       // GIVEN
       var event = new StartGame()..playerId = 0;
-      engine.game.activePlayerId = null;
+      engineGame().activePlayerId = null;
 
       // WHEN
       engine.handle(event);
@@ -116,7 +117,7 @@ testRiskGameEngine() {
       var expected = riskGamePlayerJoining();
       expected.started = true;
       expected.setupPhase = true;
-      expected.turnStep = TURN_STEP_REINFORCEMENT;
+      expected.turnStep = RiskGameState.TURN_STEP_REINFORCEMENT;
       expected.playersOrder = [2, 1, 0];
       expected.activePlayerId = 2;
       expected.players[0].reinforcement = 35;
@@ -149,7 +150,7 @@ testRiskGameEngine() {
     test('should NOT start game when there is not enough player', () {
       // GIVEN
       var event = new StartGame()..playerId = 0;
-      engine.game.players = {
+      engineGame().players = {
         0: playerState()
       };
 
@@ -169,7 +170,7 @@ testRiskGameEngine() {
     test('should NOT start game if the game is already started', () {
       // GIVEN
       var event = new StartGame()..playerId = 0;
-      engine.game.started = true;
+      engineGame().started = true;
 
       // WHEN
       expect(() => engine.handle(event), throwsEngineException(
@@ -190,7 +191,7 @@ testRiskGameEngine() {
 
       test('should add an army and next player', () {
         // GIVEN
-        engine.game.activePlayerId = 1;
+        engineGame().activePlayerId = 1;
         var event = new PlaceArmy()
             ..playerId = 1
             ..country = "eastern_australia";
@@ -200,12 +201,12 @@ testRiskGameEngine() {
 
         // THEN
         var expected = riskGameSetuping();
-        expected.countries["eastern_australia"] = new CountryState(
+        expected.countries["eastern_australia"] = new CountryStateImpl(
             "eastern_australia", playerId: 1, armies: 1);
         expected.players[1].reinforcement--;
 
         expected.activePlayerId = 2;
-        expected.turnStep = TURN_STEP_REINFORCEMENT;
+        expected.turnStep = RiskGameState.TURN_STEP_REINFORCEMENT;
 
         expectEquals(engine.game, expected);
         return expectEvents([new ArmyPlaced()
@@ -217,7 +218,7 @@ testRiskGameEngine() {
 
       test('should add an army and end setup when all armies are placed', () {
         // GIVEN
-        engine.game.players = {
+        engineGame().players = {
           0: playerState(reinforcement: 0),
           1: playerState(reinforcement: 0),
           2: playerState(reinforcement: 1),
@@ -231,12 +232,12 @@ testRiskGameEngine() {
 
         // THEN
         var expected = riskGameSetuping();
-        expected.countries["eastern_australia"] = new CountryState(
+        expected.countries["eastern_australia"] = new CountryStateImpl(
             "eastern_australia", playerId: 2, armies: 1);
 
         expected.setupPhase = false;
         expected.activePlayerId = 0;
-        expected.turnStep = TURN_STEP_REINFORCEMENT;
+        expected.turnStep = RiskGameState.TURN_STEP_REINFORCEMENT;
 
         expected.players = {
           0: playerState(reinforcement: 3),
@@ -266,7 +267,7 @@ testRiskGameEngine() {
 
         // THEN
         var expected = riskGameReinforcement();
-        expected.countries["eastern_australia"] = new CountryState(
+        expected.countries["eastern_australia"] = new CountryStateImpl(
             "eastern_australia", playerId: 1, armies: 1);
         expected.players[1].reinforcement--;
 
@@ -299,7 +300,7 @@ testRiskGameEngine() {
 
     test('should add an army and next step', () {
       // GIVEN
-      engine.game..players[1].reinforcement = 1;
+      engineGame()..players[1].reinforcement = 1;
       var event = new PlaceArmy()
           ..playerId = 1
           ..country = "eastern_australia";
@@ -309,11 +310,11 @@ testRiskGameEngine() {
 
       // THEN
       var expected = riskGameReinforcement();
-      expected.countries["eastern_australia"] = new CountryState(
+      expected.countries["eastern_australia"] = new CountryStateImpl(
           "eastern_australia", playerId: 1, armies: 1);
       expected.players[1].reinforcement = 0;
 
-      expected.turnStep = TURN_STEP_ATTACK;
+      expected.turnStep = RiskGameState.TURN_STEP_ATTACK;
 
       expectEquals(engine.game, expected);
       return expectEvents([new ArmyPlaced()
@@ -328,7 +329,7 @@ testRiskGameEngine() {
               ..country = "indonesia")
           ..exceptionPattern = "is not owned by player",
       'if the player has not enough reinforcement armies': new EngineErrorCase()
-          ..setup = (RiskGame game) {
+          ..setup = (RiskGameStateImpl game) {
             game.players[1].reinforcement = 0;
           }
           ..event = (new PlaceArmy()
@@ -471,7 +472,7 @@ testRiskGameEngine() {
     test('should move armies', () {
       // GIVEN
       var event = workingMove();
-      engine.game.turnStep = TURN_STEP_ATTACK;
+      engineGame().turnStep = RiskGameState.TURN_STEP_ATTACK;
       engine.lastBattle = new BattleEnded()
           ..attacker = (new BattleOpponentResult()
               ..playerId = 1
@@ -510,7 +511,7 @@ testRiskGameEngine() {
           ..from = "western_australia"
           ..to = "new_guinea"
           ..armies = 2;
-      engine.game.turnStep = TURN_STEP_ATTACK;
+      engineGame().turnStep = RiskGameState.TURN_STEP_ATTACK;
       engine.lastBattle = new BattleEnded()
           ..attacker = (new BattleOpponentResult()
               ..playerId = 1
@@ -589,7 +590,7 @@ testRiskGameEngine() {
 
       expected.activePlayerId = 2;
       expected.players[2].reinforcement = 3;
-      expected.turnStep = TURN_STEP_REINFORCEMENT;
+      expected.turnStep = RiskGameState.TURN_STEP_REINFORCEMENT;
 
       var expectedEvents = [new ArmyMoved()
             ..playerId = 1
@@ -650,7 +651,7 @@ class HazardMock extends Mock implements Hazard {
 class EngineErrorCase {
   PlayerEvent event;
   String exceptionPattern;
-  var setup = (RiskGame game) {};
+  var setup = (RiskGameStateImpl game) {};
 }
 
 throwsEngineException(String pattern) => throwsA(predicate((ex) => ex is

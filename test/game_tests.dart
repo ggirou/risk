@@ -13,37 +13,38 @@ main() {
 }
 
 testDicesAttackComputation() {
+  var game = new RiskGameStateImpl();
   test('[2] vs [1]', () {
-    expect(computeAttackerLoss([2], [1]), equals(0));
+    expect(game.computeAttackerLoss([2], [1]), equals(0));
   });
   test('[2] vs [2,1]', () {
-    expect(computeAttackerLoss([2], [2, 1]), equals(1));
+    expect(game.computeAttackerLoss([2], [2, 1]), equals(1));
   });
   test('[2,1] vs [1]', () {
-    expect(computeAttackerLoss([2, 1], [1]), equals(0));
+    expect(game.computeAttackerLoss([2, 1], [1]), equals(0));
   });
   test('[1,1] vs [1]', () {
-    expect(computeAttackerLoss([1, 1], [1]), equals(1));
+    expect(game.computeAttackerLoss([1, 1], [1]), equals(1));
   });
   test('[1,1,1] vs [1]', () {
-    expect(computeAttackerLoss([1, 1, 1], [1]), equals(1));
+    expect(game.computeAttackerLoss([1, 1, 1], [1]), equals(1));
   });
   test('[2,2,1] vs [2,1]', () {
-    expect(computeAttackerLoss([2, 2, 1], [2, 1]), equals(1));
+    expect(game.computeAttackerLoss([2, 2, 1], [2, 1]), equals(1));
   });
   test('[2,2,1] vs [1,1]', () {
-    expect(computeAttackerLoss([2, 2, 1], [1, 1]), equals(0));
+    expect(game.computeAttackerLoss([2, 2, 1], [1, 1]), equals(0));
   });
   test('[2,2,1] vs [4,3]', () {
-    expect(computeAttackerLoss([2, 2, 1], [4, 3]), equals(2));
+    expect(game.computeAttackerLoss([2, 2, 1], [4, 3]), equals(2));
   });
 }
 
 testReinforcementComputation() {
   final playerId = 1;
   buildGame(Iterable<String> countries) {
-    RiskGame game = new RiskGame();
-    countries.forEach((c) => game.countries[c] = new CountryState(c, playerId:
+    RiskGameState game = new RiskGameStateImpl();
+    countries.forEach((c) => game.countries[c] = new CountryStateImpl(c, playerId:
         playerId, armies: 1));
     return game;
   }
@@ -51,14 +52,14 @@ testReinforcementComputation() {
   test('for one country', () {
     var countries = ["eastern_australia"];
     var expected = 3;
-    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
         ));
   });
 
   test('for 4 countries', () {
     var countries = ["eastern_australia", "congo", "egypt", "east_africa"];
     var expected = 3;
-    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
         ));
   });
 
@@ -68,7 +69,7 @@ testReinforcementComputation() {
         "greenland", "northwest_territory", "ontario", "quebec",
         "western_united_states"];
     var expected = 4;
-    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
         ));
   });
 
@@ -76,7 +77,7 @@ testReinforcementComputation() {
     var countries = CONTINENTS.firstWhere((c) => c.id == 'australia').countries;
     // 4 countries + 2
     var expected = 3;
-    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
         ));
   });
 
@@ -85,7 +86,7 @@ testReinforcementComputation() {
         CONTINENTS.firstWhere((c) => c.id == 'north_america').countries);
     // 12 countries + Noth america bonus
     var expected = (12 ~/ 3) + (5);
-    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
         ));
   });
 
@@ -93,13 +94,13 @@ testReinforcementComputation() {
     var countries = COUNTRIES.keys;
     // 42 countries + all continents bonus
     var expected = (42 ~/ 3) + (2 + 5 + 2 + 3 + 5 + 7);
-    expect(computeReinforcement(buildGame(countries), playerId), equals(expected
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
         ));
   });
 }
 
 testRiskGame() {
-  RiskGame game;
+  RiskGameStateImpl game;
 
   setUp(() {
     game = riskGameReinforcement();
@@ -127,7 +128,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGamePlayerJoining();
-    expected.players[123] = new PlayerState(123, "John Lennon", "kadhafi.png",
+    expected.players[123] = new PlayerStateImpl(123, "John Lennon", "kadhafi.png",
         "red");
 
     expectEquals(game, expected);
@@ -166,7 +167,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
-    expected.countries["eastern_australia"] = new CountryState(
+    expected.countries["eastern_australia"] = new CountryStateImpl(
         "eastern_australia", playerId: 0, armies: 1);
     expected.players[0].reinforcement--;
 
@@ -201,7 +202,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
-    expected.turnStep = TURN_STEP_REINFORCEMENT;
+    expected.turnStep = RiskGameState.TURN_STEP_REINFORCEMENT;
     expected.activePlayerId = 2;
     expected.players[2].reinforcement = 42;
 
@@ -226,7 +227,7 @@ testRiskGame() {
   test('on NextStep should set attack when reinforcement', () {
     // GIVEN
     game = riskGameReinforcement();
-    game.turnStep = TURN_STEP_REINFORCEMENT;
+    game.turnStep = RiskGameState.TURN_STEP_REINFORCEMENT;
     var event = new NextStep();
 
     // WHEN
@@ -234,7 +235,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
-    expected.turnStep = TURN_STEP_ATTACK;
+    expected.turnStep = RiskGameState.TURN_STEP_ATTACK;
 
     expectEquals(game, expected);
   });
@@ -242,7 +243,7 @@ testRiskGame() {
   test('on NextStep should set step when attack', () {
     // GIVEN
     game = riskGameReinforcement();
-    game.turnStep = TURN_STEP_ATTACK;
+    game.turnStep = RiskGameState.TURN_STEP_ATTACK;
     var event = new NextStep();
 
     // WHEN
@@ -250,7 +251,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
-    expected.turnStep = TURN_STEP_FORTIFICATION;
+    expected.turnStep = RiskGameState.TURN_STEP_FORTIFICATION;
 
     expectEquals(game, expected);
   });
@@ -259,7 +260,7 @@ testRiskGame() {
       () {
     // GIVEN
     game = riskGameReinforcement();
-    game.turnStep = TURN_STEP_FORTIFICATION;
+    game.turnStep = RiskGameState.TURN_STEP_FORTIFICATION;
     var event = new NextStep();
 
     // WHEN
@@ -267,7 +268,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
-    expected.turnStep = TURN_STEP_FORTIFICATION;
+    expected.turnStep = RiskGameState.TURN_STEP_FORTIFICATION;
 
     expectEquals(game, expected);
   });

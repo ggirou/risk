@@ -53,7 +53,7 @@ class RiskWsServer {
   RiskWsServer(): this._(new StreamController.broadcast());
   RiskWsServer._(StreamController eventController)
       : outputStream = eventController,
-          engine = new RiskGameEngine(eventController, new RiskGame());
+          engine = new RiskGameEngine(eventController, new RiskGameStateImpl());
 
   void handleWebSocket(WebSocket ws) {
     final playerId = connectPlayer(ws);
@@ -82,7 +82,7 @@ class RiskWsServer {
     stream.add(new Welcome()..playerId = playerId);
     engine.history.forEach(stream.add);
     stream.addStream(outputStream.stream);
-     
+
     ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)
         ).map(JSON.encode));
 
