@@ -2,6 +2,8 @@
 
 <link rel="import" href="board.html">
 <link rel="import" href="player.html">
+<link rel="import" href="history.html">
+<link rel="import" href="panel.html">
 
 <polymer-element name="risk-game">
   <template>
@@ -44,11 +46,8 @@
 
           <!-- my actions -->
           <template if='{{ playerId == game.activePlayerId }}'>
-            <div class="panel panel-default">
-              <div class="panel-heading">
-                <h3 class="panel-title">It's up to you !</h3>
-              </div>
-              <div class="panel-body" style="text-align: center;">
+            <risk-panel title="It's up to you !">
+              <div style="text-align: center;">
                 <template if='{{ game.turnStep == "REINFORCEMENT" }}'>
                   <h3>Reinforcement</h3>
                   <p>Select one of your country to add one of the <strong>{{ game.players[playerId].reinforcement }}</strong> army left.</p>
@@ -75,23 +74,10 @@
                   </div>
                 </template>
               </div>
-            </div>
+            </risk-panel>
           </template>
 
-          <!-- Game history -->
-          <div id="history" class="panel panel-default">
-            <div class="panel-heading">
-              <h3 class="panel-title">History</h3>
-            </div>
-            <div class="panel-body pre-scrollable">
-              <ul class="list-unstyled">
-                <li><img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon joined the game</li>
-                <li><img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon placed an army on Eastern Australia</li>
-                <li><img src="img/avatars/staline.png" class="img-rounded" alt="Avatar"> Ringo Starr attacked <img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon's Eastern Australia with 3 armies from Western Australia</li>
-                <li><img src="img/avatars/staline.png" class="img-rounded" alt="Avatar"> Ringo Starr conquered <img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon's Eastern Australia with 3 armies from Western Australia</li>
-              </ul>
-            </div>
-          </div>
+          <risk-history game="{{ game }}"></risk-history>
         </div>
       </div>
     </section>

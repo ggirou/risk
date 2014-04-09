@@ -18,13 +18,16 @@ PlayerStateImpl playerState({playerId: 123, name: "John", avatar:
     "avatar.png", color: "blue", reinforcement: 0}) => new PlayerStateImpl(playerId,
     name, avatar, color, reinforcement: reinforcement);
 
-RiskGameStateImpl riskGamePlayerJoining() => new RiskGameStateImpl()..players = {
+RiskGameStateImpl riskGamePlayerJoining() => new RiskGameStateImpl()
+    ..events = []
+    ..players = {
       0: playerState(),
       1: playerState(),
       2: playerState(),
     };
 
 RiskGameStateImpl riskGameSetuping() => new RiskGameStateImpl()
+    ..events = []
     ..players = {
       0: playerState(reinforcement: 0),
       1: playerState(reinforcement: 1),

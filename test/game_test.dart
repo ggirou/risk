@@ -141,6 +141,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGamePlayerJoining();
+    expected.events.add(event);
     expected.players[123] = new PlayerStateImpl(123, "John Lennon", "kadhafi.png",
         "red");
 
@@ -159,6 +160,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGamePlayerJoining();
+    expected.events.add(event);
     expected.started = true;
     expected.setupPhase = true;
     expected.playersOrder = [2, 1, 0];
@@ -180,6 +182,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.countries["eastern_australia"] = new CountryStateImpl(
         "eastern_australia", playerId: 0, armies: 1);
     expected.players[0].reinforcement--;
@@ -198,6 +201,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.countries["western_australia"].armies++;
     expected.players[1].reinforcement--;
 
@@ -215,6 +219,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.turnStep = RiskGameState.TURN_STEP_REINFORCEMENT;
     expected.activePlayerId = 2;
     expected.players[2].reinforcement = 42;
@@ -232,6 +237,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameSetuping();
+    expected.events.add(event);
     expected.setupPhase = false;
 
     expectEquals(game, expected);
@@ -248,6 +254,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.turnStep = RiskGameState.TURN_STEP_ATTACK;
 
     expectEquals(game, expected);
@@ -264,6 +271,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.turnStep = RiskGameState.TURN_STEP_FORTIFICATION;
 
     expectEquals(game, expected);
@@ -281,6 +289,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.turnStep = RiskGameState.TURN_STEP_FORTIFICATION;
 
     expectEquals(game, expected);
@@ -306,6 +315,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.countries["western_australia"].armies = 2;
     expected.countries["indonesia"].armies = 1;
 
@@ -333,6 +343,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.countries["western_australia"].armies = 4;
     expected.countries["siam"].armies = 0;
     expected.countries["siam"].playerId = 1;
@@ -353,6 +364,7 @@ testRiskGame() {
 
     // THEN
     var expected = riskGameReinforcement();
+    expected.events.add(event);
     expected.countries["new_guinea"].armies -= 2;
     expected.countries["western_australia"].armies += 2;
 

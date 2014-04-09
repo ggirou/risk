@@ -11,6 +11,9 @@ abstract class RiskGameState {
   static const TURN_STEP_ATTACK = 'ATTACK';
   static const TURN_STEP_FORTIFICATION = 'FORTIFICATION';
 
+  /// Returns the list of all events
+  List<EngineEvent> get events;
+
   /// Returns all possible countryIds
   List<String> get allCountryIds;
 
@@ -84,6 +87,8 @@ abstract class PlayerState {
 
 class RiskGameStateImpl extends RiskGameState with Observable {
   @observable
+  List<EngineEvent> events = toObservable([]);
+  @observable
   Map<String, CountryStateImpl> countries = toObservable({}, deep: true);
   @observable
   Map<int, PlayerStateImpl> players = toObservable({}, deep: true);
@@ -100,6 +105,7 @@ class RiskGameStateImpl extends RiskGameState with Observable {
   String turnStep;
 
   void update(EngineEvent event) {
+    events.add(event);
     if (event is PlayerJoined) {
       players[event.playerId] = new PlayerStateImpl(event.playerId, event.name,
           event.avatar, event.color);
