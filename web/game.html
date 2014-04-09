@@ -2,6 +2,7 @@
 
 <link rel="import" href="board.html">
 <link rel="import" href="player.html">
+<link rel="import" href="history.html">
 
 <polymer-element name="risk-game">
   <template>
@@ -78,20 +79,7 @@
             </div>
           </template>
 
-          <!-- Game history -->
-          <div id="history" class="panel panel-default">
-            <div class="panel-heading">
-              <h3 class="panel-title">History</h3>
-            </div>
-            <div class="panel-body pre-scrollable">
-              <ul class="list-unstyled">
-                <li><img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon joined the game</li>
-                <li><img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon placed an army on Eastern Australia</li>
-                <li><img src="img/avatars/staline.png" class="img-rounded" alt="Avatar"> Ringo Starr attacked <img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon's Eastern Australia with 3 armies from Western Australia</li>
-                <li><img src="img/avatars/staline.png" class="img-rounded" alt="Avatar"> Ringo Starr conquered <img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar"> John Lennon's Eastern Australia with 3 armies from Western Australia</li>
-              </ul>
-            </div>
-          </div>
+          <risk-history game="{{ game }}"></risk-history>
         </div>
       </div>
     </section>
