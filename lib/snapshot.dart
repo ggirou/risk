@@ -1,6 +1,6 @@
-library risk.snapshot;
+library risk_engine.snapshot;
 
-import 'event.dart';
+import 'client.dart';
 
 final List<EngineEvent> SNAPSHOT_GAME_STARTED = [
 new Welcome()..playerId = 2,

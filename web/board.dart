@@ -7,13 +7,12 @@ import 'dart:html';
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
-import 'package:risk/game.dart';
-import 'package:risk/map.dart';
+import 'package:risk/client.dart';
 
 @CustomTag('risk-board')
 class RiskBoard extends PolymerElement {
   @published
-  RiskGame game;
+  RiskGameState game;
 
   @published
   int playerId;
@@ -42,13 +41,13 @@ class RiskBoard extends PolymerElement {
   getClickHandler(int activePlayerId, String turnStep, String selectedCountryId, String countryId) {
     if (activePlayerId != playerId) {
       return countryUnselect;
-    } else if(turnStep == TURN_STEP_REINFORCEMENT) {
+    } else if(turnStep == RiskGameState.TURN_STEP_REINFORCEMENT) {
       if(isMine(countryId)) return countryPlaceArmy;
-    } else if(turnStep == TURN_STEP_ATTACK) {
+    } else if(turnStep == RiskGameState.TURN_STEP_ATTACK) {
       if(countryId == selectedCountryId) return countryUnselect;
       else if(canAttackFrom(countryId)) return countrySelect;
       else if(selectedCountryId != null && canAttackTo(selectedCountryId, countryId)) return countryAttack;
-    } else if(turnStep == TURN_STEP_FORTIFICATION) {
+    } else if(turnStep == RiskGameState.TURN_STEP_FORTIFICATION) {
       if(countryId == selectedCountryId) return countryUnselect;
       else if(canFortifyFrom(countryId)) return countrySelect;
       else if(selectedCountryId != null && canFortifyTo(selectedCountryId, countryId)) return countryMove;

@@ -4,9 +4,7 @@ import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:http_server/http_server.dart' show VirtualDirectory;
-import 'package:risk/event.dart';
-import 'package:risk/game.dart';
-import 'package:risk/engine.dart';
+import 'package:risk/server.dart';
 
 const DEFAULT_PORT = 8080;
 const DEFAULT_PATH = '../web';
@@ -53,7 +51,7 @@ class RiskWsServer {
   RiskWsServer(): this._(new StreamController.broadcast());
   RiskWsServer._(StreamController eventController)
       : outputStream = eventController,
-          engine = new RiskGameEngine(eventController, new RiskGame());
+          engine = new RiskGameEngine(eventController, new RiskGameStateImpl());
 
   void handleWebSocket(WebSocket ws) {
     final playerId = connectPlayer(ws);
@@ -82,7 +80,7 @@ class RiskWsServer {
     stream.add(new Welcome()..playerId = playerId);
     engine.history.forEach(stream.add);
     stream.addStream(outputStream.stream);
-     
+
     ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)
         ).map(JSON.encode));
 

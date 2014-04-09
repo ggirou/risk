@@ -2,7 +2,7 @@
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
-import 'package:risk/game.dart';
+import 'package:risk/client.dart';
 
 
 @CustomTag('risk-player-vignette')

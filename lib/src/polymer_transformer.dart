@@ -1,4 +1,4 @@
-import 'package:polymer_expressions/filter.dart' show Transformer;
+part of risk;
 
 class StringToInt extends Transformer<String, int> {
   String forward(int i) => '$i';

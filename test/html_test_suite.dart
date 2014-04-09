@@ -1,8 +1,8 @@
 import 'package:unittest/html_config.dart';
-import 'map_tests.dart' as map_tests;
-import 'game_tests.dart' as game_tests;
-import 'engine_tests.dart' as engine_tests;
-import 'event_tests.dart' as event_tests;
+import 'map_test.dart' as map_tests;
+import 'game_test.dart' as game_tests;
+import 'engine_test.dart' as engine_tests;
+import 'event_test.dart' as event_tests;
 
 main() {
   useHtmlConfiguration();

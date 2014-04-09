@@ -8,9 +8,7 @@ import 'dart:math';
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
-import 'package:risk/game.dart' as Game;
-import 'package:risk/event.dart';
-import 'package:risk/polymer_transformer.dart';
+import 'package:risk/client.dart';
 
 const AUTO_SETUP = false;
 
@@ -33,7 +31,7 @@ class RiskGame extends PolymerElement {
   bool get applyAuthorStyles => true;
 
   @observable
-  Game.RiskGame game = new Game.RiskGame();
+  RiskGameState game = new RiskGameStateImpl();
 
   @observable
   int playerId;
