@@ -156,8 +156,8 @@ class RiskGameStateImpl extends RiskGameState with Observable {
     return max(3, playerCountries.length ~/ 3 + bonus);
   }
 
-  List<String> get allCountryIds => COUNTRIES.keys.toList();
-  List<String> countryNeighbours(String countryId) => COUNTRIES[countryId].neighbours;
+  List<String> get allCountryIds => COUNTRY_BY_ID.keys.toList();
+  List<String> countryNeighbours(String countryId) => COUNTRY_BY_ID[countryId].neighbours;
 }
 
 class CountryStateImpl extends CountryState with Observable {

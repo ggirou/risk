@@ -15,10 +15,10 @@ testGameCountries() {
   var game = new RiskGameStateImpl();
 
   test('allCountryIds should return all country ids', () {
-    expect(game.allCountryIds, equals(COUNTRIES.keys));
+    expect(game.allCountryIds, equals(COUNTRY_BY_ID.keys));
   });
 
-  COUNTRIES.forEach((countryId, country) {
+  COUNTRY_BY_ID.forEach((countryId, country) {
     test('$countryId should have specified neighbours', () {
       expect(game.countryNeighbours(countryId), equals(country.neighbours));
     });
@@ -104,7 +104,7 @@ testReinforcementComputation() {
   });
 
   test('for All countries and continents', () {
-    var countries = COUNTRIES.keys;
+    var countries = COUNTRY_BY_ID.keys;
     // 42 countries + all continents bonus
     var expected = (42 ~/ 3) + (2 + 5 + 2 + 3 + 5 + 7);
     expect(buildGame(countries).computeReinforcement(playerId), equals(expected
