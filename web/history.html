@@ -31,7 +31,7 @@
           <template if="{{ event | isBattleEnded }}">
             <li>
               <template ref="risk-player-inline" bind="{{ game.players[event.attacker.playerId] }}"></template> attacked from {{ event.attacker.country }} to {{ event.defender.country }} (owned by <template ref="risk-player-inline" bind="{{ game.players[event.defender.playerId] }}"></template>).
-              The dices are {{ event.attacker.dices | displayDices }} for attacker vs. {{ event.defender.dices | displayDices }} for defender.
+              The dices are {{ event.attacker.dices }} for attacker vs. {{ event.defender.dices }} for defender.
               <template if="{{ event.conquered }}">
                  The country has been conquered.
               </template>
