@@ -2,7 +2,7 @@ library risk.test.utils;
 
 import 'package:morph/morph.dart';
 import 'package:unittest/unittest.dart';
-import 'package:risk/server.dart';
+import '../lib/risk.dart';
 
 /*
  * Assert equality between [actual] and [expected] by reflection.

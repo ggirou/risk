@@ -1,7 +1,7 @@
 library risk.event.test;
 
 import 'package:unittest/unittest.dart';
-import 'package:risk/server.dart';
+import '../lib/risk.dart';
 
 var events = {
   "JoinGame": new SerializableTest()

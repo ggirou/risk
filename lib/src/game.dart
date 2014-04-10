@@ -4,18 +4,13 @@ part of risk;
  * Stores the Risk game state.
  */
 abstract class RiskGameState {
+  /// Game constants
   static const PLAYERS_MIN = 2;
   static const PLAYERS_MAX = 6;
   static const START_ARMIES = const [0, 0, 40, 35, 30, 25, 20];
   static const TURN_STEP_REINFORCEMENT = 'REINFORCEMENT';
   static const TURN_STEP_ATTACK = 'ATTACK';
   static const TURN_STEP_FORTIFICATION = 'FORTIFICATION';
-
-  /// Returns the list of all events
-  List<EngineEvent> get events;
-
-  /// Returns all possible countryIds
-  List<String> get allCountryIds;
 
   /// Returns the countryId / country state map.
   Map<String, CountryState> get countries;
@@ -33,14 +28,16 @@ abstract class RiskGameState {
   /// Return the turn step of the active player (REINFORCEMENT, ATTACK, FORTIFICATION).
   String get turnStep;
 
-  /**
-   * Updates this Risk game state for the incoming [event].
-   */
-  void update(EngineEvent event);
+  /// Returns the history of all events
+  List<EngineEvent> get events;
 
-  /**
-   * Computes attacker loss comparing rolled [attacks] and [defends] dices.
-   */
+  /// Returns all possible countryIds
+  List<String> get allCountryIds;
+
+  /// Returns neighbours ids for the given [countryId].
+  List<String> countryNeighbours(String countryId);
+
+  /// Computes attacker loss comparing rolled [attacks] and [defends] dices.
   int computeAttackerLoss(List<int> attacks, List<int> defends);
 
   /**
@@ -51,10 +48,8 @@ abstract class RiskGameState {
    */
   int computeReinforcement(int playerId);
 
-  /**
-   * Returns neighbours ids for the given [countryId].
-   */
-  List<String> countryNeighbours(String countryId);
+  /// Updates this Risk game state for the incoming [event].
+  void update(EngineEvent event);
 }
 
 /**
@@ -83,9 +78,11 @@ abstract class PlayerState {
   String get color;
   /// The number of available armies for the player.
   int get reinforcement;
+  /// True if the player lost the game.
+  bool get dead;
 }
 
-class RiskGameStateImpl extends RiskGameState with Observable {
+class RiskGameStateImpl extends Object with Observable implements RiskGameState {
   @observable
   List<EngineEvent> events = toObservable([]);
   @observable
@@ -103,6 +100,28 @@ class RiskGameStateImpl extends RiskGameState with Observable {
   bool setupPhase = false;
   @observable
   String turnStep;
+
+  List<String> get allCountryIds => COUNTRY_BY_ID.keys.toList();
+  List<String> countryNeighbours(String countryId) => COUNTRY_BY_ID[countryId].neighbours;
+
+  int computeAttackerLoss(List<int> attacks, List<int> defends) {
+    int result = 0;
+    for (int i = 0; i < min(attacks.length, defends.length); i++) {
+      if (attacks[i] <= defends[i]) result++;
+    }
+    return result;
+  }
+
+  Set<String> playerCountries(int playerId) => countries.values.where((c) =>
+      c.playerId == playerId).map((c) => c.countryId).toSet();
+
+  int computeReinforcement(int playerId) {
+    var playerCountries = this.playerCountries(playerId);
+    var continents = CONTINENTS.where((c) => c.countries.every(
+        playerCountries.contains));
+    var bonus = continents.map((c) => c.bonus).fold(0, (a, b) => a + b);
+    return max(3, playerCountries.length ~/ 3 + bonus);
+  }
 
   void update(EngineEvent event) {
     events.add(event);
@@ -142,31 +161,9 @@ class RiskGameStateImpl extends RiskGameState with Observable {
       countries[event.to].armies += event.armies;
     }
   }
-
-  Set<String> playerCountries(int playerId) => countries.values.where((c) =>
-      c.playerId == playerId).map((c) => c.countryId).toSet();
-
-  int computeAttackerLoss(List<int> attacks, List<int> defends) {
-    int result = 0;
-    for (int i = 0; i < min(attacks.length, defends.length); i++) {
-      if (attacks[i] <= defends[i]) result++;
-    }
-    return result;
-  }
-
-  int computeReinforcement(int playerId) {
-    var playerCountries = this.playerCountries(playerId);
-    var continents = CONTINENTS.where((c) => c.countries.every(
-        playerCountries.contains));
-    var bonus = continents.map((c) => c.bonus).fold(0, (a, b) => a + b);
-    return max(3, playerCountries.length ~/ 3 + bonus);
-  }
-
-  List<String> get allCountryIds => COUNTRY_BY_ID.keys.toList();
-  List<String> countryNeighbours(String countryId) => COUNTRY_BY_ID[countryId].neighbours;
 }
 
-class CountryStateImpl extends CountryState with Observable {
+class CountryStateImpl extends Object with Observable implements CountryState {
   final String countryId;
   @observable
   int playerId;
@@ -175,13 +172,15 @@ class CountryStateImpl extends CountryState with Observable {
   CountryStateImpl(this.countryId, {this.playerId, this.armies: 0});
 }
 
-class PlayerStateImpl extends PlayerState with Observable {
+class PlayerStateImpl extends Object with Observable implements PlayerState {
   final int playerId;
   final String name;
   final String avatar;
   final String color;
   @observable
   int reinforcement;
+  @observable
+  bool dead;
 
-  PlayerStateImpl(this.playerId, this.name, this.avatar, this.color, {this.reinforcement: 0});
+  PlayerStateImpl(this.playerId, this.name, this.avatar, this.color, {this.reinforcement: 0, this.dead: false});
 }

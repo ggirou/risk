@@ -3,14 +3,11 @@ library risk;
 @MirrorsUsed(targets: const ['risk'])
 import 'dart:mirrors';
 
-import 'dart:convert';
-import 'dart:math';
-import 'package:morph/morph.dart';
-import 'package:observe/observe.dart';
 import 'package:polymer_expressions/filter.dart' show Transformer;
 
-part 'src/event.dart';
-part 'src/event_codec.dart';
-part 'src/game.dart';
-part 'src/map.dart';
+// Import common sources to be visible in this library scope
+import 'risk.dart';
+// Export common sources to be visible to this library's users
+export 'risk.dart';
+
 part 'src/polymer_transformer.dart';

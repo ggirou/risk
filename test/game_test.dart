@@ -1,7 +1,7 @@
 library risk.game.test;
 
 import 'package:unittest/unittest.dart';
-import 'package:risk/server.dart';
+import '../lib/risk.dart';
 import 'utils.dart';
 
 main() {

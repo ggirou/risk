@@ -1,7 +1,7 @@
 library risk.map.test;
 
 import 'package:unittest/unittest.dart';
-import 'package:risk/server.dart';
+import '../lib/risk.dart';
 
 const NoSuchMethodErrorMatcher = const isInstanceOf<NoSuchMethodError>();
 
