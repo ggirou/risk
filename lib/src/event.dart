@@ -86,7 +86,7 @@ class PlayerJoined implements EngineEvent {
   String color;
 }
 
-/// sent by the engine when countries are affected
+/// sent by the engine when players are ready and the game starts
 class GameStarted implements EngineEvent {
   /// The number of armies by player
   int armies;
