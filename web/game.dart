@@ -12,14 +12,6 @@ import 'package:risk/client.dart';
 
 const AUTO_SETUP = false;
 
-// grabbed on http://i.stack.imgur.com/VewLV.png (http://gamedev.stackexchange.com/questions/46463/is-there-an-optimum-set-of-colors-for-10-players)
-final COLORS = ['#FF8080', '#78BEF0', '#DED16F', '#CC66C9', '#5DBAAC',
-    '#F2A279', '#7182E3', '#92D169', '#BF607C', '#7CDDF7'];
-final AVATARS = ['ahmadi-nejad.png', 'bachar-el-assad.png', 'caesar.png',
-    'castro.png', 'hitler.png', 'kadhafi.png', 'kim-jong-il.png', 'mao-zedong.png',
-    'mussolini.png', 'napoleon.png', 'pinochet.png', 'saddam-hussein.png',
-    'staline.png'];
-
 class Move {
   String from, to;
   int maxArmies;
@@ -64,12 +56,6 @@ class RiskGame extends PolymerElement {
 
     if (event is Welcome) {
       playerId = event.playerId;
-      // TODO Show enrollement popup
-      sendEvent(new JoinGame()
-          ..playerId = playerId
-          ..color = COLORS[playerId % COLORS.length]
-          ..avatar = AVATARS[playerId % AVATARS.length]
-          ..name = _ask("What's your name?"));
     } else if (event is BattleEnded) {
       if (event.attacker.playerId == playerId) {
         if (event.defender.remainingArmies == 0) {
@@ -99,6 +85,13 @@ class RiskGame extends PolymerElement {
       }
     }
   }
+
+  joinGame(CustomEvent e, var detail, Element target) => sendEvent(new JoinGame(
+      )
+      ..playerId = playerId
+      ..color = detail['color']
+      ..avatar = detail['avatar']
+      ..name = detail['name']);
 
   attack(CustomEvent e, var detail, Element target) => sendEvent(new Attack()
       ..playerId = playerId
