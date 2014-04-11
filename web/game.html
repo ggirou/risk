@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <link rel="import" href="board.html">
+<link rel="import" href="hello.html">
 <link rel="import" href="players.html">
 <link rel="import" href="history.html">
 <link rel="import" href="panel.html">
@@ -29,6 +30,7 @@
           on-move="{{ move }}"
           on-selection="{{ selection }}"></risk-board>
         <div class="col-md-4">
+          <hello-world name="{{ game.players[playerId].name }}" hidden?="{{ game.players[playerId] == null }}"></hello-world>
 
           <template if='{{ !game.started && game.players.length >= 2 }}'>
             <div style='text-align: center; padding: 1em;'>
