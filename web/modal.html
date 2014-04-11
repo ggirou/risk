@@ -13,18 +13,21 @@
         background-color: rgba(256,256,256,0.8);
       }
 
-      h4 {
+      #title {
         border-bottom: 1px solid lightgray;
       }
 
-      div {
+      #panel {
         background-color: white;
         border: 1px solid lightgray;
         border-radius: 10px;
+        padding: 10px;
         width: 80%;
         max-width: 768px;
-        margin: 10% auto 0;
-        padding: 10px;
+        margin: 5% auto 0;
+        max-height: 80%;
+        overflow-x: hidden;
+        overflow-y: auto;
       }
 
       #close {
@@ -33,11 +36,11 @@
       }
     </style>
 
-    <div>
+    <div id="panel">
       <template if="{{ closable }}">
         <button id="close" on-click="{{ close }}">&times;</button>
       </template>
-      <h4>{{ title }}</h4>
+      <h4 id="title">{{ title }}</h4>
       <content></content>
     </div>
   </template>
