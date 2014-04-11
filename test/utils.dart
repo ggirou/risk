@@ -1,5 +1,6 @@
 library risk.test.utils;
 
+import 'dart:async';
 import 'package:morph/morph.dart';
 import 'package:unittest/unittest.dart';
 import '../lib/risk.dart';
@@ -13,11 +14,13 @@ void expectEquals(actual, expected, {String reason, FailureHandler
       reason, failureHandler: failureHandler, verbose: verbose);
 }
 
-// TODO: comments
+
+/// Build an instance of PlayerState
 PlayerStateImpl playerState({playerId: 123, name: "John", avatar:
     "avatar.png", color: "blue", reinforcement: 0}) => new PlayerStateImpl(playerId,
     name, avatar, color, reinforcement: reinforcement);
 
+/// Build an instance of RiskGameState when players are joining and game is not started yet
 RiskGameStateImpl riskGamePlayerJoining() => new RiskGameStateImpl()
     ..events = []
     ..players = {
@@ -26,6 +29,7 @@ RiskGameStateImpl riskGamePlayerJoining() => new RiskGameStateImpl()
       2: playerState(),
     };
 
+/// Build an instance of RiskGameState when game started and it is setuping
 RiskGameStateImpl riskGameSetuping() => new RiskGameStateImpl()
     ..events = []
     ..players = {
@@ -47,6 +51,7 @@ RiskGameStateImpl riskGameSetuping() => new RiskGameStateImpl()
     ..activePlayerId = 2
     ..playersOrder = [1, 2, 0];
 
+/// Build an instance of RiskGameState when setup is over and one player is reinforcing
 RiskGameStateImpl riskGameReinforcement() => riskGameSetuping()
     ..players = {
       0: playerState(reinforcement: 0),
@@ -58,6 +63,7 @@ RiskGameStateImpl riskGameReinforcement() => riskGameSetuping()
     ..activePlayerId = 1;
 
 
+/// Build an instance of RiskGameState when player is attacking
 RiskGameStateImpl riskGameAttacking() => riskGameReinforcement()
     ..players = {
       0: playerState(reinforcement: 0),
@@ -67,11 +73,15 @@ RiskGameStateImpl riskGameAttacking() => riskGameReinforcement()
     ..turnStep = RiskGameState.TURN_STEP_ATTACK;
 
 
+/// Build an instance of RiskGameState when player is fortifying
 RiskGameStateImpl riskGameFortification() => riskGameAttacking()
     ..turnStep = RiskGameState.TURN_STEP_FORTIFICATION;
 
+
+
+
 // When we try to serialize Observable object, we get an error on serializing `changes` value
-final ignoreObservableStreamType = new RiskGameStateImpl().changes.runtimeType;
+final ignoreObservableStreamType = new StreamController.broadcast(sync: true).stream.runtimeType;
 final _MORPH = new Morph()..registerTypeAdapter(ignoreObservableStreamType,
     new _ToNullSerializer());
 

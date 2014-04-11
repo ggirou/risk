@@ -5,19 +5,19 @@ import '../lib/risk.dart';
 import 'utils.dart';
 
 main() {
-  group('Game countries', testGameCountries);
-  group('Dices attack computation', testDicesAttackComputation);
-  group('Reinforcement computation', testReinforcementComputation);
-  group('RiskGame.update', testRiskGame);
-}
-
-testGameCountries() {
-  var game = new RiskGameStateImpl();
-
-  test('allCountryIds should return all country ids', () {
+  test('RiskGameState.allCountryIds should return all country ids', () {
+    var game = new RiskGameStateImpl();
     expect(game.allCountryIds, equals(COUNTRY_BY_ID.keys));
   });
 
+  group('RiskGameState.countryNeighbours with', testCountryNeighbours);
+  group('RiskGameState.computeAttackerLoss with', testComputeAttackerLoss);
+  group('RiskGameState.computeReinforcement', testReinforcementComputation);
+  group('RiskGameState.update', testUpdate);
+}
+
+testCountryNeighbours() {
+  var game = new RiskGameStateImpl();
   COUNTRY_BY_ID.forEach((countryId, country) {
     test('$countryId should have specified neighbours', () {
       expect(game.countryNeighbours(countryId), equals(country.neighbours));
@@ -25,30 +25,30 @@ testGameCountries() {
   });
 }
 
-testDicesAttackComputation() {
+testComputeAttackerLoss() {
   var game = new RiskGameStateImpl();
-  test('[2] vs [1]', () {
+  test('[2] vs [1] should result to 0', () {
     expect(game.computeAttackerLoss([2], [1]), equals(0));
   });
-  test('[2] vs [2,1]', () {
+  test('[2] vs [2,1] should result to 1', () {
     expect(game.computeAttackerLoss([2], [2, 1]), equals(1));
   });
-  test('[2,1] vs [1]', () {
+  test('[2,1] vs [1] should result to 0', () {
     expect(game.computeAttackerLoss([2, 1], [1]), equals(0));
   });
-  test('[1,1] vs [1]', () {
+  test('[1,1] vs [1] should result to 1', () {
     expect(game.computeAttackerLoss([1, 1], [1]), equals(1));
   });
-  test('[1,1,1] vs [1]', () {
+  test('[1,1,1] vs [1] should result to 1', () {
     expect(game.computeAttackerLoss([1, 1, 1], [1]), equals(1));
   });
-  test('[2,2,1] vs [2,1]', () {
+  test('[2,2,1] vs [2,1] should result to 1', () {
     expect(game.computeAttackerLoss([2, 2, 1], [2, 1]), equals(1));
   });
-  test('[2,2,1] vs [1,1]', () {
+  test('[2,2,1] vs [1,1] should result to 0', () {
     expect(game.computeAttackerLoss([2, 2, 1], [1, 1]), equals(0));
   });
-  test('[2,2,1] vs [4,3]', () {
+  test('[2,2,1] vs [4,3] should result to 2', () {
     expect(game.computeAttackerLoss([2, 2, 1], [4, 3]), equals(2));
   });
 }
@@ -57,62 +57,51 @@ testReinforcementComputation() {
   final playerId = 1;
   buildGame(Iterable<String> countries) {
     RiskGameState game = new RiskGameStateImpl();
-    countries.forEach((c) => game.countries[c] = new CountryStateImpl(c, playerId:
-        playerId, armies: 1));
+    countries.forEach((c) => game.countries[c] = new CountryStateImpl(c, playerId: playerId, armies: 1));
     return game;
   }
 
-  test('for one country', () {
+  test('for one country, expect the minimum of 3', () {
     var countries = ["eastern_australia"];
     var expected = 3;
-    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
-        ));
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected));
   });
 
-  test('for 4 countries', () {
+  test('for 4 countries, expect the minimum of 3', () {
     var countries = ["eastern_australia", "congo", "egypt", "east_africa"];
     var expected = 3;
-    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
-        ));
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected));
   });
 
-  test('for 13 countries', () {
-    var countries = ["eastern_australia", "brazil", "congo", "egypt",
-        "east_africa", "alberta", "central_america", "eastern_united_states",
-        "greenland", "northwest_territory", "ontario", "quebec",
-        "western_united_states"];
+  test('for 13 countries, expect 4 because 13 / 3 = 4', () {
+    var countries = ["eastern_australia", "brazil", "congo", "egypt", "east_africa", "alberta", "central_america", "eastern_united_states", "greenland", "northwest_territory", "ontario", "quebec", "western_united_states"];
     var expected = 4;
-    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
-        ));
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected));
   });
 
-  test('for Australia', () {
+  test('for Australia continent, expect 3 because 4 / 3 + 2 = 3', () {
     var countries = CONTINENTS.firstWhere((c) => c.id == 'australia').countries;
     // 4 countries + 2
     var expected = 3;
-    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
-        ));
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected));
   });
 
-  test('for North america + 3 other countries', () {
-    var countries = ["congo", "egypt", "east_africa"]..addAll(
-        CONTINENTS.firstWhere((c) => c.id == 'north_america').countries);
+  test('for North america continent + 3 other countries, expect 9 because 12 / 3 + 5 = 9', () {
+    var countries = ["congo", "egypt", "east_africa"]..addAll(CONTINENTS.firstWhere((c) => c.id == 'north_america').countries);
     // 12 countries + Noth america bonus
-    var expected = (12 ~/ 3) + (5);
-    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
-        ));
+    var expected = 9;
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected));
   });
 
-  test('for All countries and continents', () {
+  test('for All countries and continents, expect 38 because 42 / 3 + (2 + 5 + 2 + 3 + 5 + 7) = 38', () {
     var countries = COUNTRY_BY_ID.keys;
     // 42 countries + all continents bonus
-    var expected = (42 ~/ 3) + (2 + 5 + 2 + 3 + 5 + 7);
-    expect(buildGame(countries).computeReinforcement(playerId), equals(expected
-        ));
+    var expected = 38;
+    expect(buildGame(countries).computeReinforcement(playerId), equals(expected));
   });
 }
 
-testRiskGame() {
+testUpdate() {
   RiskGameStateImpl game;
 
   setUp(() {
@@ -120,10 +109,8 @@ testRiskGame() {
   });
 
   test('should get countries owned by players', () {
-    expect(game.playerCountries(1), unorderedEquals(["western_australia",
-        "new_guinea"]));
-    expect(game.playerCountries(2), unorderedEquals(["siam", "great_britain",
-        "indonesia"]));
+    expect(game.playerCountries(1), unorderedEquals(["western_australia", "new_guinea"]));
+    expect(game.playerCountries(2), unorderedEquals(["siam", "great_britain", "indonesia"]));
     expect(game.playerCountries(42), equals(new Set()));
   });
 
@@ -142,8 +129,7 @@ testRiskGame() {
     // THEN
     var expected = riskGamePlayerJoining();
     expected.events.add(event);
-    expected.players[123] = new PlayerStateImpl(123, "John Lennon", "kadhafi.png",
-        "red");
+    expected.players[123] = new PlayerStateImpl(123, "John Lennon", "kadhafi.png", "red");
 
     expectEquals(game, expected);
   });
@@ -183,8 +169,7 @@ testRiskGame() {
     // THEN
     var expected = riskGameReinforcement();
     expected.events.add(event);
-    expected.countries["eastern_australia"] = new CountryStateImpl(
-        "eastern_australia", playerId: 0, armies: 1);
+    expected.countries["eastern_australia"] = new CountryStateImpl("eastern_australia", playerId: 0, armies: 1);
     expected.players[0].reinforcement--;
 
     expectEquals(game, expected);
@@ -277,8 +262,7 @@ testRiskGame() {
     expectEquals(game, expected);
   });
 
-  test('on NextStep should keep fortification step when already fortification',
-      () {
+  test('on NextStep should keep fortification step when already fortification', () {
     // GIVEN
     game = riskGameReinforcement();
     game.turnStep = RiskGameState.TURN_STEP_FORTIFICATION;
@@ -322,8 +306,7 @@ testRiskGame() {
     expectEquals(game, expected);
   });
 
-  test('on BattleEnded and conquered should set remaining armies in countries',
-      () {
+  test('on BattleEnded and conquered should set remaining armies in countries', () {
     // GIVEN
     var event = new BattleEnded()
         ..attacker = (new BattleOpponentResult()
