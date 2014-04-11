@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <link rel="import" href="board.html">
-<link rel="import" href="player.html">
+<link rel="import" href="players.html">
 <link rel="import" href="history.html">
 <link rel="import" href="panel.html">
 <link rel="import" href="modal.html">
@@ -18,9 +18,6 @@
         text-align: center;
         padding: 0;
         margin: 1em 0;
-      }
-      #avatars risk-player-vignette {
-        display: inline-block;
       }
     </style>
 
@@ -41,9 +38,7 @@
 
           <!-- Players List -->
           <div id="avatars">
-            <template repeat="{{ player in game.players.values }}">
-              <risk-player-vignette player="{{ player }}" active="{{ player.playerId == game.activePlayerId }}"></risk-player-vignette>
-            </template>
+            <risk-players players="{{ game.players.values }}" activePlayerId="{{ game.activePlayerId }}"></risk-players>
           </div>
 
           <!-- my actions -->
