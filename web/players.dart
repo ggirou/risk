@@ -5,16 +5,16 @@ import 'package:polymer/polymer.dart';
 import 'package:risk/client.dart';
 
 
-@CustomTag('risk-player-vignette')
-class RiskPlayerVignette extends PolymerElement {
+@CustomTag('risk-players')
+class RiskPlayers extends PolymerElement {
   // Whether styles from the document apply to the contents of the component
   bool get applyAuthorStyles => true;
 
   @published
-  PlayerState player;
+  Iterable<PlayerState> players;
 
   @published
-  bool active;
+  int activePlayerId;
 
-  RiskPlayerVignette.created(): super.created();
+  RiskPlayers.created(): super.created();
 }

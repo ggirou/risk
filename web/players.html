@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<polymer-element name="risk-players">
+  <template>
+    <style>
+      div {
+        display: inline-block;
+        padding: 0.5em 1em;
+        margin: 0 1em;
+        border: 2px solid lightgray;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .active {
+        border-color: black;
+      }
+    </style>
+
+    <template repeat="{{ player in players }}">
+      <div class="{{ {'active': player.playerId == activePlayerId} }}" style="background-color: {{ player.color }}">
+        <img src="img/avatars/{{ player.avatar }}" class="img-rounded" alt="Avatar"><br>
+        {{ player.name }}
+      </div>
+    </template>
+  </template>
+  <script type="application/dart" src="players.dart"></script>
+</polymer-element>
