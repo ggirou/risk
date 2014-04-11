@@ -4,6 +4,8 @@
 <link rel="import" href="player.html">
 <link rel="import" href="history.html">
 <link rel="import" href="panel.html">
+<link rel="import" href="modal.html">
+<link rel="import" href="registration.html">
 
 <polymer-element name="risk-game">
   <template>
@@ -81,6 +83,12 @@
         </div>
       </div>
     </section>
+
+    <template if="{{ game.players[playerId] == null }}">
+      <risk-modal title="Player registration">
+        <risk-registration on-done='{{ joinGame }}'></risk-registration>
+      </risk-modal>
+    </template>
   </template>
 
   <script type="application/dart" src="game.dart"></script>

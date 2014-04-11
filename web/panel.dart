@@ -1,6 +1,5 @@
 import 'package:polymer/polymer.dart';
 
-
 @CustomTag('risk-panel')
 class RiskPanel extends PolymerElement {
   // Whether styles from the document apply to the contents of the component

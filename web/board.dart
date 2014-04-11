@@ -58,15 +58,15 @@ class RiskBoard extends PolymerElement {
   countrySelect(Event e, var detail, Element target) => selectedCountryId = target.dataset['country'];
   countryUnselect(Event e, var detail, Element target) => selectedCountryId = null;
   countryPlaceArmy(Event e, var detail, Element target) =>
-    dispatchEvent(new CustomEvent('selection', detail: target.dataset['country']));
-  countryAttack(Event e, var detail, Element target) => dispatchEvent(new CustomEvent('attack', detail: {
+    fire('selection', detail: target.dataset['country']);
+  countryAttack(Event e, var detail, Element target) => fire('attack', detail: {
     'from': selectedCountryId,
     'to': target.dataset['country']
-  }));
-  countryMove(Event e, var detail, Element target) => dispatchEvent(new CustomEvent('move', detail: {
+  });
+  countryMove(Event e, var detail, Element target) => fire('move', detail: {
     'from': selectedCountryId,
     'to': target.dataset['country']
-  }));
+  });
 
   bool isMine(String country) => game.countries[country].playerId == playerId;
   bool isNotMine(String country) => !isMine(country);
