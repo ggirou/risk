@@ -2,27 +2,28 @@
 
 <polymer-element name="risk-players">
   <template>
-    <style>
-      div {
-        display: inline-block;
-        padding: 0.5em 1em;
-        margin: 0 1em;
-        border: 2px solid lightgray;
-        border-radius: 10px;
-        text-align: center;
-      }
+    <link rel="stylesheet" href="css/risk.css">
+    <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
 
-      .active {
-        border-color: black;
-      }
-    </style>
-
-    <template repeat="{{ player in players }}">
-      <div class="{{ {'active': player.playerId == activePlayerId} }}" style="background-color: {{ player.color }}">
-        <img src="img/avatars/{{ player.avatar }}" class="img-rounded" alt="Avatar"><br>
-        {{ player.name }}
-      </div>
-    </template>
+    <ul id="players" class="list-group list-group-inverse img-rounded">
+      <template repeat="{{ player in players }}">
+        <li class="list-group-item {{ {'active': player.playerId == activePlayerId} }}">
+          <img src="img/avatars/{{ player.avatar }}" style="border-color: {{ player.color }}" class="img-rounded" alt="Avatar">
+          <span><b>{{ player.name }}</b></span>
+          <span class="badge pull-right">
+            <i class="riskicon riskicon-soldier"></i>
+            <template if="{{ player.reinforcement >= 2 }}">
+              <i class="riskicon riskicon-soldier"></i>
+            </template>
+            <template if="{{ player.reinforcement >= 3 }}">
+              <i class="riskicon riskicon-soldier"></i>
+            </template>
+            {{ player.reinforcement }}
+          </span>
+        </li>
+      </template>
+    </ul>
   </template>
   <script type="application/dart" src="players.dart"></script>
 </polymer-element>

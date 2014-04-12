@@ -14,22 +14,14 @@
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
 
-    <style>
-      #avatars {
-        text-align: center;
-        padding: 0;
-        margin: 1em 0;
-      }
-    </style>
-
     <section class="container-fluid">
       <div class="row">
         <!-- Risk Board -->
-        <risk-board id='board' game="{{ game }}" playerId="{{ playerId }}" class="col-md-8"
+        <risk-board id='board' game="{{ game }}" playerId="{{ playerId }}" class="col-md-9"
           on-attack="{{ attack }}"
           on-move="{{ move }}"
           on-selection="{{ selection }}"></risk-board>
-        <div class="col-md-4">
+        <div class="col-md-3">
           <hello-world name="{{ game.players[playerId].name }}"></hello-world>
 
           <template if='{{ !game.started && game.players.length >= 2 }}'>
@@ -81,7 +73,7 @@
       </div>
     </section>
 
-    <template if="{{ game.players[playerId] == null }}">
+    <template if="{{ !game.started && game.players[playerId] == null }}">
       <risk-modal title="Player registration">
         <risk-registration on-done='{{ joinGame }}'></risk-registration>
       </risk-modal>

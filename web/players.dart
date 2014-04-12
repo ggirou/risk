@@ -2,14 +2,11 @@
 import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
-import 'package:risk/client.dart';
+import 'package:risk/risk.dart';
 
 
 @CustomTag('risk-players')
 class RiskPlayers extends PolymerElement {
-  // Whether styles from the document apply to the contents of the component
-  bool get applyAuthorStyles => true;
-
   @published
   Iterable<PlayerState> players;
 

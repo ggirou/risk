@@ -5,7 +5,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Risk</title>
-    <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/risk.css">
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="packages/bootstrap_for_pub/3.1.0/css/bootstrap-theme.min.css">
@@ -25,52 +24,44 @@
     <section class="container-fluid">
       <div class="row">
         <!-- Risk Board -->
-        <img src="img/board.svg" class="col-md-8">
-        <div class="col-md-4">
+        <img src="img/board.svg" class="col-md-9">
+        <div class="col-md-3">
           <!-- Players List -->
-          <ul id="avatars" class="nav nav-pills nav-stacked navbar-inverse img-rounded">
-            <li>
-              <a>
-                <img src="img/avatars/castro.png" class="img-rounded" alt="Avatar">
-                <span><b>Paul McCartney</b></span>
-                <span class="badge pull-right">
-                  0
-                </span>
-              </a>
+          <ul id="players" class="list-group list-group-inverse img-rounded">
+            <li class="list-group-item">
+              <img src="img/avatars/castro.png" style="border-color: green" class="img-rounded" alt="Avatar">
+              <span><b>Paul McCartney</b></span>
+              <span class="badge pull-right">
+                0
+              </span>
             </li>
-            <li class="active">
-              <a>
-                <img src="img/avatars/kadhafi.png" class="img-rounded" alt="Avatar">
-                <span><b>John Lennon</b></span>
-                <span class="badge pull-right">
-                  <i class="riskicon riskicon-soldier"></i>
-                  <i class="riskicon riskicon-soldier"></i>
-                  <i class="riskicon riskicon-soldier"></i>
-                  8
-                </span>
-              </a>
+            <li class="list-group-item active">
+              <img src="img/avatars/kadhafi.png" style="border-color: blue" class="img-rounded" alt="Avatar">
+              <span><b>John Lennon</b></span>
+              <span class="badge pull-right">
+                <i class="riskicon riskicon-soldier"></i>
+                <i class="riskicon riskicon-soldier"></i>
+                <i class="riskicon riskicon-soldier"></i>
+                8
+              </span>
             </li>
-            <li>
-              <a>
-                <img src="img/avatars/staline.png" class="img-rounded" alt="Avatar">
-                <span><b>Ringo Starr</b></span>
-                <span class="badge pull-right">
-                  <i class="riskicon riskicon-soldier"></i>
-                  <i class="riskicon riskicon-soldier"></i>
-                  2
-                </span>
-              </a>
+            <li class="list-group-item">
+              <img src="img/avatars/staline.png" style="border-color: yellow" class="img-rounded" alt="Avatar">
+              <span><b>Ringo Starr</b></span>
+              <span class="badge pull-right">
+                <i class="riskicon riskicon-soldier"></i>
+                <i class="riskicon riskicon-soldier"></i>
+                2
+              </span>
             </li>
-            <li>
-              <a>
-                <img src="img/avatars/kim-jong-il.png" class="img-rounded" alt="Avatar">
-                <span><b>George Harrison</b></span>
-                <span class="badge pull-right">
-                  <i class="riskicon riskicon-soldier"></i>
-                  <i class="riskicon riskicon-soldier"></i>
-                  2
-                </span>
-              </a>
+            <li class="list-group-item">
+              <img src="img/avatars/kim-jong-il.png" style="border-color: red" class="img-rounded" alt="Avatar">
+              <span><b>George Harrison</b></span>
+              <span class="badge pull-right">
+                <i class="riskicon riskicon-soldier"></i>
+                <i class="riskicon riskicon-soldier"></i>
+                2
+              </span>
             </li>
           </ul>
           <!-- Game history -->
