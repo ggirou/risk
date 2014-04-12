@@ -13,5 +13,11 @@ class RiskPlayers extends PolymerElement {
   @published
   int activePlayerId;
 
+  @published
+  List<int> playersOrder = [];
+
   RiskPlayers.created(): super.created();
+
+  sort(List<int> playersOrder) => (Iterable<PlayerState> players) => new List.from(players) //
+      ..sort((PlayerState a, PlayerState b) => playersOrder.indexOf(a.playerId).compareTo(playersOrder.indexOf(b.playerId)));
 }
