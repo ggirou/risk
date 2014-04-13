@@ -28,16 +28,16 @@
       viewBox="0 0 800 540" width="100%" height="90%">
       <image xlink:href="img/board.svg" width="100%" height="100%" />
 
-      <template repeat="{{ country in game.countries.values }}">
-        <g on-click="{{ countryClick }}" data-country="{{ country.countryId }}"
-          class="{{ {'selected': country.countryId == selectedCountryId, 'selectable': selectableCountry(country.countryId ,game.activePlayerId, game.turnStep, selectedCountryId)} }}">
-          <path class="country" d="{{ paths[country.countryId]['path'] }}"
-            fill="{{ country.playerId | color }}">
+      <template repeat="{{ countryId in paths.keys }}">
+        <g on-click="{{ countryClick }}" data-country="{{ countryId }}"
+          class="{{ {'selected': countryId == selectedCountryId, 'selectable': selectableCountry(countryId ,game.activePlayerId, game.turnStep, selectedCountryId)} }}">
+          <path class="country" d="{{ paths[countryId]['path'] }}"
+            fill="{{ color(game.countries[countryId].playerId) }}">
           </path>
           <!-- armies -->
-          <g transform="translate({{ paths[country.countryId]['center']['x'] }},{{ paths[country.countryId]['center']['y'] }})">
+          <g transform="translate({{ paths[countryId]['center']['x'] }},{{ paths[countryId]['center']['y'] }})">
             <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
-            <text text-anchor="middle" font-size="10" x="0" y="3">{{ country.armies }}</text>
+            <text text-anchor="middle" font-size="10" x="0" y="3">{{ game.countries[countryId].armies }}</text>
           </g>
         </g>
       </template>

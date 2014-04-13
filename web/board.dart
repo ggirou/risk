@@ -94,9 +94,9 @@ abstract class AbstractRiskBoardElement extends PolymerElement {
 
   bool isMine(String country) => game.countries[country].playerId == playerId;
   bool isNotMine(String country) => !isMine(country);
-  bool areNeighbours(String myCountry, String strangeCountry) => COUNTRY_BY_ID[myCountry].neighbours.contains(strangeCountry);
-  bool canAttackFrom(String country) => isMine(country) && game.countries[country].armies > 1 && COUNTRY_BY_ID[country].neighbours.any((to) => isNotMine(to));
+  bool areNeighbours(String myCountry, String strangeCountry) => game.countryNeighbours(myCountry).contains(strangeCountry);
+  bool canAttackFrom(String country) => isMine(country) && game.countries[country].armies > 1 && game.countryNeighbours(country).any((to) => isNotMine(to));
   bool canAttackTo(String from, String to) => isNotMine(to) && areNeighbours(from, to);
-  bool canFortifyFrom(String country) => isMine(country) && game.countries[country].armies > 1 && COUNTRY_BY_ID[country].neighbours.any((to) => isMine(to));
+  bool canFortifyFrom(String country) => isMine(country) && game.countries[country].armies > 1 && game.countryNeighbours(country).any((to) => isMine(to));
   bool canFortifyTo(String from, String to) => isMine(to) && areNeighbours(from, to);
 }
