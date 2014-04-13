@@ -17,6 +17,8 @@ class RiskPlayers extends PolymerElement {
   List<int> playersOrder = [];
 
   RiskPlayers.created(): super.created();
+  
+  String uppercase(String name) => name.toUpperCase();
 
   sort(List<int> playersOrder) => (Iterable<PlayerState> players) => new List.from(players) //
       ..sort((PlayerState a, PlayerState b) => playersOrder.indexOf(a.playerId).compareTo(playersOrder.indexOf(b.playerId)));

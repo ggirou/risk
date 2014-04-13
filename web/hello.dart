@@ -6,6 +6,4 @@ class HelloWorld extends PolymerElement {
   String name;
 
   HelloWorld.created(): super.created();
-  
-  String uppercase(String name) => name.toUpperCase();
 }

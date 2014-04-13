@@ -11,6 +11,7 @@
 
       .selected .country, .country:hover {
         stroke-width: 2;
+        fill: red;
       }
 
       .selectable {
@@ -34,11 +35,13 @@
           <path class="country" d="{{ paths[countryId]['path'] }}"
             fill="{{ color(game.countries[countryId].playerId) }}">
           </path>
-          <!-- armies -->
-          <g transform="translate({{ paths[countryId]['center']['x'] }},{{ paths[countryId]['center']['y'] }})">
-            <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
-            <text text-anchor="middle" font-size="10" x="0" y="3">{{ game.countries[countryId].armies }}</text>
-          </g>
+          <!-- Armies number -->
+          <template if="{{ game.countries[countryId].armies > 0 }}">
+            <g transform="translate({{ paths[countryId]['center']['x'] }},{{ paths[countryId]['center']['y'] }})">
+              <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
+              <text text-anchor="middle" font-size="10" x="0" y="3">{{ game.countries[countryId].armies }}</text>
+            </g>
+          </template>
         </g>
       </template>
     </svg>
