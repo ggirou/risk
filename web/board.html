@@ -2,68 +2,45 @@
 
 <polymer-element name="risk-board">
   <template>
+    <link rel="stylesheet" href="css/risk.css">
     <style>
       .country {
         stroke: black;
         stroke-width: 1;
       }
 
-      .selected .shape {
-        fill: red;
-      }
-
-      .country:hover .shape{
+      .selected .country, .country:hover {
         stroke-width: 2;
-      }
-
-      text {
-        cursor:default;
-
-        -webkit-user-select: none; /* Chrome/Safari */
-        -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* IE10+ */
-
-        /* Rules below not implemented in browsers yet */
-        -o-user-select: none;
-        user-select: none;
       }
 
       .selectable {
         cursor: pointer;
       }
 
-      @keyframes highlight {
-        from { opacity: 1; }
-        to { opacity: 0.5; }
-      }
-
-      .selectable .shape {
+      .selectable .country {
         animation-duration: 1s;
         animation-name: highlight;
         animation-iteration-count: infinite;
         animation-direction: alternate;
       }
     </style>
-    <svg id="svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
       viewBox="0 0 800 540" width="100%" height="90%">
       <image xlink:href="img/board.svg" width="100%" height="100%" />
 
-      <g id="countries">
-        <template repeat="{{ country in game.countries.values }}">
-          <g on-click="{{ countryClick }}" data-country="{{ country.countryId }}"
-            class="country {{ {'selectable': selectableCountry(game.activePlayerId, game.turnStep, selectedCountryId, country)} }}">
-            <path id="path-{{ country.countryId }}" class="shape" d="{{ svgPaths[country.countryId]['path'] }}"
-              fill="{{ country.playerId | color }}">
-            </path>
-            <!-- armies -->
-            <g transform="translate({{ svgPaths[country.countryId]['center']['x'] }},{{ svgPaths[country.countryId]['center']['y'] }})">
-              <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
-              <text text-anchor="middle" font-size="10"
-                    x="0" y="3">{{ country.armies }}</text>
-            </g>
+      <template repeat="{{ country in game.countries.values }}">
+        <g on-click="{{ countryClick }}" data-country="{{ country.countryId }}"
+          class="{{ {'selected': country.countryId == selectedCountryId, 'selectable': selectableCountry(country.countryId ,game.activePlayerId, game.turnStep, selectedCountryId)} }}">
+          <path class="country" d="{{ paths[country.countryId]['path'] }}"
+            fill="{{ country.playerId | color }}">
+          </path>
+          <!-- armies -->
+          <g transform="translate({{ paths[country.countryId]['center']['x'] }},{{ paths[country.countryId]['center']['y'] }})">
+            <circle cx="0" cy="0" r="8" stroke="black" stroke-width="1" fill="white" />
+            <text text-anchor="middle" font-size="10" x="0" y="3">{{ country.armies }}</text>
           </g>
-        </template>
-      </g>
+        </g>
+      </template>
     </svg>
   </template>
   <script type="application/dart" src="board.dart"></script>

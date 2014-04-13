@@ -9,6 +9,7 @@ import 'dart:mirrors';
 
 import 'package:polymer/polymer.dart';
 import 'package:risk/client.dart';
+import 'package:risk/snapshot.dart';
 
 const AUTO_SETUP = false;
 

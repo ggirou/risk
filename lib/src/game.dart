@@ -174,9 +174,9 @@ class CountryStateImpl extends Object with Observable implements CountryState {
 
 class PlayerStateImpl extends Object with Observable implements PlayerState {
   final int playerId;
-  final String name;
-  final String avatar;
-  final String color;
+  String name;
+  String avatar;
+  String color;
   @observable
   int reinforcement;
   @observable
