@@ -227,11 +227,11 @@ class RiskGameEngine {
 
   void nextPlayer() {
     // TODO: test
-    var orders = []..addAll(game.playersOrder)..addAll(game.playersOrder);
-    int nextPlayerId = orders //
+    int nextPlayerId = game.activePlayerId == null ? game.playersOrder[0] : //
+        ([]..addAll(game.playersOrder)..addAll(game.playersOrder)) //
         .skipWhile((playerId) => game.activePlayerId != playerId) //
         .skip(1) //
-        .firstWhere((playerId) => !game.players[playerId].dead, orElse: () => orders[0]);
+        .firstWhere((playerId) => !game.players[playerId].dead);
 
     int reinforcement = game.setupPhase ?
         game.players[nextPlayerId].reinforcement : game.computeReinforcement(

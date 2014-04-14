@@ -370,7 +370,7 @@ testUpdate() {
     expectEquals(game, expected);
   });
 
-  test('on PlayerWin should do nothing', () {
+  test('on PlayerWon should do nothing', () {
     // GIVEN
     var event = new PlayerWon()
         ..playerId = 1;
