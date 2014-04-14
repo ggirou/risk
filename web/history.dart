@@ -13,7 +13,15 @@ class RiskHistory extends PolymerElement {
   @published
   RiskGameState game;
 
-  RiskHistory.created(): super.created();
+  RiskHistory.created(): super.created() {
+    var content = shadowRoot.querySelector("#content");
+
+    scrollBottom(_) => content.scrollByPages(10);
+
+    onPropertyChange(this, #game, () {
+      (game.events as Observable).changes.listen(scrollBottom);
+    });
+  }
 
   bool isArmyMoved(EngineEvent e) => e is ArmyMoved;
   bool isArmyPlaced(EngineEvent e) => e is ArmyPlaced;

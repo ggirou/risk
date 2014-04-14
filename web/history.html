@@ -27,7 +27,7 @@
       <div class="panel-heading">
         <h3 class="panel-title">History</h3>
       </div>
-      <div class="panel-body pre-scrollable">
+      <div id="content" class="panel-body pre-scrollable">
         <ul class="list-unstyled">
           <template repeat="{{ event in game.events }}">
             <template if="{{ event | isArmyMoved }}">
