@@ -10,4 +10,4 @@ export 'risk.dart';
 
 part 'src/engine.dart';
 
-part 'src/ARiskWsServer.dart';
+part 'src/ws_server.dart';
