@@ -166,6 +166,17 @@ class RiskGameEngine {
         ..conquered = defender.remainingArmies == 0;
 
     _publish(lastBattle);
+
+    // TODO: test
+    var defenderCountries = game.countries.values.where((c) => c.playerId == defenderId);
+    if(defenderCountries.isEmpty) {
+      _publish(new PlayerLost()..playerId = defenderId);
+
+      var alivePlayers = game.playersOrder.where((playerId) => !game.players[playerId].dead);
+      if(alivePlayers.length == 1) {
+        _publish(new PlayerWon()..playerId = event.playerId);
+      }
+    }
   }
 
   void onMove(MoveArmy event) {
@@ -215,10 +226,13 @@ class RiskGameEngine {
   }
 
   void nextPlayer() {
-    var orders = game.playersOrder;
-    int nextPlayerIndex = game.activePlayerId == null ? 0 : orders.indexOf(
-        game.activePlayerId) + 1;
-    int nextPlayerId = orders[nextPlayerIndex % orders.length];
+    // TODO: test
+    int nextPlayerId = game.activePlayerId == null ? game.playersOrder[0] : //
+        ([]..addAll(game.playersOrder)..addAll(game.playersOrder)) //
+        .skipWhile((playerId) => game.activePlayerId != playerId) //
+        .skip(1) //
+        .firstWhere((playerId) => !game.players[playerId].dead);
+
     int reinforcement = game.setupPhase ?
         game.players[nextPlayerId].reinforcement : game.computeReinforcement(
         nextPlayerId);
