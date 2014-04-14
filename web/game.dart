@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
-import 'dart:js';
 import 'dart:math';
 
 @MirrorsUsed(targets: const ['risk.map', 'risk.game',])
@@ -12,11 +11,6 @@ import 'package:risk/client.dart';
 import 'package:risk/snapshot.dart';
 
 const AUTO_SETUP = false;
-
-class Move {
-  String from, to;
-  int maxArmies;
-}
 
 @CustomTag('risk-game')
 class RiskGame extends PolymerElement {
@@ -32,25 +26,14 @@ class RiskGame extends PolymerElement {
   @observable
   Move pendingMove; // {'from':from, 'to': to}
 
-  @observable
-  int armiesToMove = 1;
-
-  final asInteger = new StringToInt();
-
   final WebSocket ws;
 
-  RiskGame.created(): this.fromWebSocket(new WebSocket(_currentWebSocketUri(
-      ).toString())); // , snapshot: SNAPSHOT_GAME_ATTACK);
+  RiskGame.created(): this.fromWebSocket(new WebSocket(_currentWebSocketUri().toString())); // , snapshot: SNAPSHOT_GAME_ATTACK);
 
-  RiskGame.fromWebSocket(this.ws, {Iterable<EngineEvent> snapshot: const []}):
-      super.created() {
+  RiskGame.fromWebSocket(this.ws, {Iterable<EngineEvent> snapshot: const []}): super.created() {
     new Stream.fromIterable(snapshot).listen(handleEvents);
-    var eventStream = ws.onMessage.map((e) => e.data).map(JSON.decode).map(
-        _printEvent("IN")).map(EVENT.decode).listen(handleEvents);
+    var eventStream = ws.onMessage.map((e) => e.data).map(JSON.decode).map(_printEvent("IN")).map(EVENT.decode).listen(handleEvents);
   }
-
-  startGame(Event e, var detail, Element target) => sendEvent(new StartGame(
-      )..playerId = playerId);
 
   handleEvents(EngineEvent event) {
     game.update(event);
@@ -67,11 +50,12 @@ class RiskGame extends PolymerElement {
                 ..to = event.defender.country
                 ..armies = 1);
           } else {
+            var maxArmies = event.attacker.remainingArmies - 1;
             pendingMove = new Move()
                 ..from = event.attacker.country
                 ..to = event.defender.country
-                ..maxArmies = event.attacker.remainingArmies - 1;
-            armiesToMove = pendingMove.maxArmies;
+                ..maxArmies = maxArmies
+                ..armiesToMove = maxArmies;
           }
         }
       }
@@ -81,14 +65,12 @@ class RiskGame extends PolymerElement {
       if (AUTO_SETUP && game.setupPhase && event.playerId == playerId) {
         sendEvent(new PlaceArmy()
             ..playerId = playerId
-            ..country = (game.countries.values.where((cs) => cs.playerId ==
-                playerId).map((cs) => cs.countryId).toList()..shuffle()).first);
+            ..country = (game.countries.values.where((cs) => cs.playerId == playerId).map((cs) => cs.countryId).toList()..shuffle()).first);
       }
     }
   }
 
-  joinGame(CustomEvent e, var detail, Element target) => sendEvent(new JoinGame(
-      )
+  joinGame(CustomEvent e, var detail, Element target) => sendEvent(new JoinGame()
       ..playerId = playerId
       ..color = detail['color']
       ..avatar = detail['avatar']
@@ -101,15 +83,17 @@ class RiskGame extends PolymerElement {
       ..armies = min(3, game.countries[e.detail['from']].armies - 1));
 
   move(CustomEvent e, var detail, Element target) {
+    var maxArmies = game.countries[e.detail['from']].armies - 1;
     pendingMove = new Move()
         ..from = e.detail['from']
         ..to = e.detail['to']
-        ..maxArmies = game.countries[e.detail['from']].armies - 1;
-    armiesToMove = pendingMove.maxArmies;
+        ..maxArmies = maxArmies
+        ..armiesToMove = maxArmies;
   }
 
-  selection(CustomEvent e, var detail, Element target) => sendEvent(
-      new PlaceArmy()
+  startGame() => sendEvent(new StartGame()..playerId = playerId);
+
+  selection(CustomEvent e, var detail, Element target) => sendEvent(new PlaceArmy()
       ..playerId = playerId
       ..country = e.detail);
 
@@ -117,16 +101,13 @@ class RiskGame extends PolymerElement {
       ..playerId = playerId
       ..from = pendingMove.from
       ..to = pendingMove.to
-      ..armies = armiesToMove);
+      ..armies = pendingMove.armiesToMove);
 
   endAttack() => sendEvent(new EndAttack()..playerId = playerId);
 
   endTurn() => sendEvent(new EndTurn()..playerId = playerId);
 
-  String _ask(String question) => context.callMethod('prompt', [question]);
-
-  sendEvent(PlayerEvent event) => ws.send(_printEvent('OUT')(JSON.encode(
-      EVENT.encode(event))));
+  sendEvent(PlayerEvent event) => ws.send(_printEvent('OUT')(JSON.encode(EVENT.encode(event))));
 }
 
 Uri _currentWebSocketUri() {
