@@ -33,6 +33,8 @@ class EventDecoder extends Converter<Map, Object> {
     "NextStep": NextStep,
     "BattleEnded": BattleEnded,
     "ArmyMoved": ArmyMoved,
+    "PlayerLost": PlayerLost,
+    "PlayerWon": PlayerWon,
   };
 
   const EventDecoder();

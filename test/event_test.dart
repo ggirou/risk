@@ -251,13 +251,11 @@ var events = {
         expect(output.attacker.playerId, equals(event.attacker.playerId));
         expect(output.attacker.dices, equals(event.attacker.dices));
         expect(output.attacker.country, equals(event.attacker.country));
-        expect(output.attacker.remainingArmies, equals(
-            event.attacker.remainingArmies));
+        expect(output.attacker.remainingArmies, equals(event.attacker.remainingArmies));
         expect(output.defender.playerId, equals(event.defender.playerId));
         expect(output.defender.dices, equals(event.defender.dices));
         expect(output.defender.country, equals(event.defender.country));
-        expect(output.defender.remainingArmies, equals(
-            event.defender.remainingArmies));
+        expect(output.defender.remainingArmies, equals(event.defender.remainingArmies));
       },
 
   "ArmyMoved": new SerializableTest()
@@ -280,6 +278,30 @@ var events = {
         expect(output.from, equals(event.from));
         expect(output.to, equals(event.to));
         expect(output.armies, equals(event.armies));
+      },
+
+  "PlayerLost": new SerializableTest()
+      ..event = (new PlayerLost()..playerId = 123)
+      ..json = {
+        "event": "PlayerLost",
+        "data": {
+          "playerId": 123,
+        },
+      }
+      ..expectation = (PlayerLost event, PlayerLost output) {
+        expect(output.playerId, equals(event.playerId));
+      },
+
+  "PlayerWon": new SerializableTest()
+      ..event = (new PlayerWon()..playerId = 123)
+      ..json = {
+        "event": "PlayerWon",
+        "data": {
+          "playerId": 123,
+        },
+      }
+      ..expectation = (PlayerWon event, PlayerWon output) {
+        expect(output.playerId, equals(event.playerId));
       },
 
 };
@@ -335,8 +357,7 @@ class SerializableTest {
       var output = EVENT.decode(json);
 
       // THEN
-      expect(output.runtimeType, equals(event.runtimeType), reason:
-          "Type are different");
+      expect(output.runtimeType, equals(event.runtimeType), reason: "Type are different");
       expectation(event, output);
     });
   }
