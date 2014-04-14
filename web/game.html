@@ -21,52 +21,17 @@
           on-attack="{{ attack }}"
           on-move="{{ move }}"
           on-selection="{{ selection }}"></risk-board>
+
         <div class="col-md-3">
           <hello-world name="{{ game.players[playerId].name }}"></hello-world>
 
-          <template if='{{ !game.started && game.players.length >= 2 }}'>
-            <div style='text-align: center; padding: 1em;'>
-              <button on-click='{{ startGame }}'>Start Game</button>
-            </div>
-          </template>
+          <risk-players players="{{ game.players.values }}" activePlayerId="{{ game.activePlayerId }}" playersOrder="{{ game.playersOrder }}"></risk-players>
 
-          <!-- Players List -->
-          <div id="avatars">
-            <risk-players players="{{ game.players.values }}" activePlayerId="{{ game.activePlayerId }}" playersOrder="{{ game.playersOrder }}"></risk-players>
-          </div>
-
-          <!-- my actions -->
-          <template if='{{ playerId == game.activePlayerId }}'>
-            <risk-panel title="It's up to you !">
-              <div style="text-align: center;">
-                <template if='{{ game.turnStep == "REINFORCEMENT" }}'>
-                  <h3>Reinforcement</h3>
-                  <p>Select one of your country to add one of the <strong>{{ game.players[playerId].reinforcement }}</strong> army left.</p>
-                </template>
-                <template if='{{ game.turnStep == "ATTACK" }}'>
-                  <h3>Attack</h3>
-                  <template if='{{ pendingMove == null }}'>
-                    <p>Select a country from which you want to engage a battle.</p>
-                    <button on-click="{{ endAttack }}">End of attacks</button>
-                  </template>
-                </template>
-                <template if='{{ game.turnStep == "FORTIFICATION" }}'>
-                  <h3>Fortification</h3>
-                  <template if='{{ pendingMove == null }}'>
-                    <p>Select a country from which you want to perform the last move to make ofr this turn.</p>
-                    <button on-click="{{ endTurn }}">End of my turn</button>
-                  </template>
-                </template>
-                <template if='{{ pendingMove != null }}'>
-                  <div style='text-align: center; padding: 1em;'>
-                    <p>How many armies do you want to move from <strong>{{ pendingMove.from }}</strong> to <strong>{{ pendingMove.to }}</strong>?</p>
-                    <input type="range" value="{{ armiesToMove | asInteger }}" min="1" max="{{ pendingMove.maxArmies }}" />
-                    <button on-click='{{ moveArmies }}'>Move {{ armiesToMove }} armies</button>
-                  </div>
-                </template>
-              </div>
-            </risk-panel>
-          </template>
+          <risk-panel game="{{ game }}" playerId="{{ playerId }}" pendingMove="{{ pendingMove }}"
+            on-startgame="{{ startGame }}"
+            on-movearmies="{{ moveArmies }}"
+            on-endattack="{{ endAttack }}"
+            on-endturn="{{ endTurn }}"></risk-panel>
 
           <risk-history game="{{ game }}"></risk-history>
         </div>
