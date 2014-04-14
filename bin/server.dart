@@ -18,9 +18,9 @@ main(List<String> args) {
     HttpServer.bind(InternetAddress.ANY_IP_V4, port).then((server) {
       print("Risk is running on http://localhost:$port\nBase path: $path");
       vDir = new VirtualDirectory(path)
-          ..jailRoot = false
-          ..allowDirectoryListing = true
-          ..directoryHandler = directoryHandler;
+        ..jailRoot = false
+        ..allowDirectoryListing = true
+        ..directoryHandler = directoryHandler;
       var riskServer = new RiskWsServer();
       server.listen((HttpRequest req) {
         if (req.uri.path == '/ws') {
@@ -41,19 +41,14 @@ void directoryHandler(dir, request) {
   vDir.serveFile(new File(indexUri.toFilePath()), request);
 }
 
-class RiskWsServer {
-  final Map<int, WebSocket> _clients = {};
-  final RiskGameEngine engine;
+class RiskWsServer extends ARiskWsServer {
 
-  final StreamController outputStream;
-  int currentPlayerId = 1;
+  RiskWsServer.raw(RiskGameEngine engine, StreamController outputStream)//
+  :super.raw(engine, outputStream);
 
-  RiskWsServer(): this._(new StreamController.broadcast());
-  RiskWsServer._(StreamController eventController)
-      : outputStream = eventController,
-          engine = new RiskGameEngine(eventController, new RiskGameStateImpl());
+  RiskWsServer():super();
 
-  void handleWebSocket(WebSocket ws) {
+  void handleWebSocket(Stream ws) {
     final playerId = connectPlayer(ws);
 
     // Decode JSON
@@ -69,27 +64,4 @@ class RiskWsServer {
     // Connection closed
     .onDone(() => print("Player $playerId left"));
   }
-
-  int connectPlayer(WebSocket ws) {
-    int playerId = currentPlayerId++;
-
-    _clients[playerId] = ws;
-
-    // Concate streams: Welcome event, history events, incoming events
-    var stream = new StreamController();
-    stream.add(new Welcome()..playerId = playerId);
-    engine.history.forEach(stream.add);
-    stream.addStream(outputStream.stream);
-
-    ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)
-        ).map(JSON.encode));
-
-    print("Player $playerId connected");
-    return playerId;
-  }
-
-  logEvent(String direction, int playerId) => (event) {
-    print("$direction[$playerId] - $event");
-    return event;
-  };
 }

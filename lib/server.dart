@@ -9,3 +9,5 @@ import 'risk.dart';
 export 'risk.dart';
 
 part 'src/engine.dart';
+
+part 'src/ARiskWsServer.dart';
