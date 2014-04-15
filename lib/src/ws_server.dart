@@ -1,20 +1,24 @@
 part of risk;
 
 abstract class ARiskWsServer {
+
   final Map<int, WebSocket> _clients = {
   };
+
   final RiskGameEngine engine;
 
-  final StreamController outputStream;
   int currentPlayerId = 1;
 
-  ARiskWsServer(): this._(new StreamController.broadcast());
+  ARiskWsServer(): this.fromStreamCtrl(new StreamController.broadcast());
 
-  ARiskWsServer._(StreamController eventController):outputStream = eventController, engine = new RiskGameEngine(eventController, new RiskGameStateImpl());
+  ARiskWsServer.fromStreamCtrl(StreamController eventController):engine = new RiskGameEngine(eventController, new RiskGameStateImpl());
 
-  ARiskWsServer.raw(this.engine, this.outputStream);
+  void handleWebSocket(WebSocket ws) {
+    final playerId = connectPlayer(ws);
+    listen(ws, playerId);
+  }
 
-  void handleWebSocket(Stream ws) {
+  void listen(Stream ws, int id) {
   }
 
   int connectPlayer(WebSocket ws) {
@@ -27,7 +31,7 @@ abstract class ARiskWsServer {
     stream.add(new Welcome()
       ..playerId = playerId);
     engine.history.forEach(stream.add);
-    stream.addStream(outputStream.stream);
+    stream.addStream(engine.outputStream.stream);
 
     ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)).map(JSON.encode));
 

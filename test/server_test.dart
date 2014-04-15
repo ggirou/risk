@@ -18,11 +18,13 @@ testRiskWsServer() {
 
   rethrowHandler(e) => throw e;
 
-  ARiskWsServer riskWsServer() => new RiskWsServer.raw(engine, streamController);
+  ARiskWsServer riskWsServer() {
+    engine = new RiskGameEngineMock();
+    return new RiskWsServer.fromStreamCtrl(engine);
+  }
+
 
   setUp(() {
-    streamController = new StreamController.broadcast();
-    engine = new RiskGameEngineMock();
     wsServer = riskWsServer();
   });
 
@@ -33,10 +35,15 @@ testRiskWsServer() {
       '{"event":"JoinGame","data":{"playerId":1,"name":"mat","avatar":"mao-zedong.png","color":"#f7676d"}}', //
       '{"event":"PlayerJoined","data":{"playerId":1,"name":"mat","avatar":"mao-zedong.png","color":"#f7676d"}}']);
 
-      // WHEN
-      //wsServer.handleWebSocket(stream);
+      /*check() {
+        // THEN
+        print("THEN -------------");
+        engine.getLogs(callsTo('handle')).verify(happenedExactly(3));
+      }
+      stream.listen(null, onDone:expectAsync(check));
 
-      // THEN
+      // WHEN
+      wsServer.listen(stream, 1);*/
     });
 
 
@@ -44,9 +51,4 @@ testRiskWsServer() {
 }
 
 class RiskGameEngineMock extends Mock implements RiskGameEngine {
-  /*RiskGameEngineMock(eventController) {
-    super(eventController, new RiskGameStateImpl());
-  }*/
-
-//hazard.when(callsTo('rollDices')).thenReturn([6, 1]).thenReturn([2, 1]);
 }

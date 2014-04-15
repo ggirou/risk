@@ -2,6 +2,7 @@ library risk;
 
 import 'dart:async';
 import 'dart:math';
+import 'dart:io';
 
 // Import common sources to be visible in this library scope
 import 'risk.dart';

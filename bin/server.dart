@@ -43,14 +43,10 @@ void directoryHandler(dir, request) {
 
 class RiskWsServer extends ARiskWsServer {
 
-  RiskWsServer.raw(RiskGameEngine engine, StreamController outputStream)//
-  :super.raw(engine, outputStream);
-
   RiskWsServer():super();
+  RiskWsServer.fromStreamCtrl(ctrl):super.fromStreamCtrl(ctrl);
 
-  void handleWebSocket(Stream ws) {
-    final playerId = connectPlayer(ws);
-
+  void listen(Stream ws, int playerId) {
     // Decode JSON
     ws.map(JSON.decode)
     // Log incoming events
