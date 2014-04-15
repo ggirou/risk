@@ -12,15 +12,15 @@ main() {
 }
 
 testRiskWsServer() {
-  RiskGameEngine engine;
+  RiskGameEngineMock engine;
   StreamController streamController;
-  ARiskWsServer wsServer;
+  AbstractRiskWsServer wsServer;
 
   rethrowHandler(e) => throw e;
 
-  ARiskWsServer riskWsServer() {
+  AbstractRiskWsServer riskWsServer() {
     engine = new RiskGameEngineMock();
-    return new RiskWsServer.fromStreamCtrl(engine);
+    return new RiskWsServer.fromEngine(engine);
   }
 
 

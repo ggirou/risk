@@ -11,7 +11,7 @@ class EngineException {
 
 class RiskGameEngine {
   final RiskGameState game;
-  final EventSink<EngineEvent> outputStream;
+  final StreamController<EngineEvent> outputStream;
   final List<EngineEvent> history = [];
 
   final Hazard hazard;

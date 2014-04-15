@@ -18,9 +18,9 @@ main(List<String> args) {
     HttpServer.bind(InternetAddress.ANY_IP_V4, port).then((server) {
       print("Risk is running on http://localhost:$port\nBase path: $path");
       vDir = new VirtualDirectory(path)
-        ..jailRoot = false
-        ..allowDirectoryListing = true
-        ..directoryHandler = directoryHandler;
+          ..jailRoot = false
+          ..allowDirectoryListing = true
+          ..directoryHandler = directoryHandler;
       var riskServer = new RiskWsServer();
       server.listen((HttpRequest req) {
         if (req.uri.path == '/ws') {
@@ -41,10 +41,13 @@ void directoryHandler(dir, request) {
   vDir.serveFile(new File(indexUri.toFilePath()), request);
 }
 
-class RiskWsServer extends ARiskWsServer {
+class RiskWsServer extends AbstractRiskWsServer {
+  final RiskGameEngine engine;
 
-  RiskWsServer():super();
-  RiskWsServer.fromStreamCtrl(ctrl):super.fromStreamCtrl(ctrl);
+  Codec<Object, Map> get engineEventCodec => EVENT;
+
+  RiskWsServer() : this.fromEngine(new RiskGameEngine(new StreamController.broadcast(), new RiskGameStateImpl()));
+  RiskWsServer.fromEngine(this.engine);
 
   void listen(Stream ws, int playerId) {
     // Decode JSON
