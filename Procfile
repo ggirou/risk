@@ -1,1 +1,1 @@
-web: /app/dart-sdk/bin/dart bin/server.dart $PORT ../build/web
+web: /app/dart-sdk/bin/dart bin/main.dart $PORT ../build/web

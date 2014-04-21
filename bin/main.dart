@@ -1,4 +1,4 @@
-library risk.server;
+library risk.main;
 
 import 'dart:io';
 import 'dart:async';
@@ -9,18 +9,22 @@ import 'package:risk/server.dart';
 const DEFAULT_PORT = 8080;
 const DEFAULT_PATH = '../web';
 
-VirtualDirectory vDir;
-
 main(List<String> args) {
   int port = args.length > 0 ? int.parse(args[0], onError: (_) => DEFAULT_PORT) : DEFAULT_PORT;
   String path = Platform.script.resolve(args.length > 1 ? args[1] : DEFAULT_PATH).toFilePath();
   runZoned(() {
-    HttpServer.bind(InternetAddress.ANY_IP_V4, port).then((server) {
+    HttpServer.bind(InternetAddress.ANY_IP_V4, port).then((HttpServer server) {
       print("Risk is running on http://localhost:$port\nBase path: $path");
-      vDir = new VirtualDirectory(path)
+      server.serverHeader = "Risk Server";
+      server.idleTimeout = const Duration(seconds: 30);
+      
+      VirtualDirectory vDir = new VirtualDirectory(path)
           ..jailRoot = false
-          ..allowDirectoryListing = true
-          ..directoryHandler = directoryHandler;
+          ..allowDirectoryListing = true;
+      vDir.directoryHandler = (Directory dir, HttpRequest request) {
+        vDir.serveFile(new File( new Uri.file(dir.path).resolve('index.html').toFilePath()), request);
+      };
+   
       var riskServer = new RiskWsServer();
       server.listen((HttpRequest req) {
         if (req.uri.path == '/ws') {
@@ -36,10 +40,6 @@ main(List<String> args) {
   }, onError: (e) => print("An error occurred $e"));
 }
 
-void directoryHandler(dir, request) {
-  final indexUri = new Uri.file(dir.path).resolve('index.html');
-  vDir.serveFile(new File(indexUri.toFilePath()), request);
-}
 
 class RiskWsServer {
   final Map<int, WebSocket> _clients = {};

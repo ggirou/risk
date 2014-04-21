@@ -1,9 +1,5 @@
-@MirrorsUsed(targets: const ['risk.game',])
-import 'dart:mirrors';
-
 import 'package:polymer/polymer.dart';
 import 'package:risk/client.dart';
-
 
 @CustomTag('risk-history')
 class RiskHistory extends PolymerElement {

@@ -1,4 +1,4 @@
-part of risk;
+part of risk.client;
 
 class StringToInt extends Transformer<String, int> {
   String forward(int i) => '$i';

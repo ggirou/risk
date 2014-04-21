@@ -1,4 +1,4 @@
-part of risk;
+part of risk.server;
 
 bool autoSetup = new String.fromEnvironment('autoSetup', defaultValue: 'true')
     == 'true';

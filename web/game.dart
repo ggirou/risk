@@ -3,9 +3,6 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:math';
 
-@MirrorsUsed(targets: const ['risk.map', 'risk.game',])
-import 'dart:mirrors';
-
 import 'package:polymer/polymer.dart';
 import 'package:risk/client.dart';
 import 'package:risk/snapshot.dart';

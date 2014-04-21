@@ -1,6 +1,6 @@
-library risk;
+library risk.client;
 
-@MirrorsUsed(targets: const ['risk'])
+@MirrorsUsed(targets: const ['risk', 'risk.client'])
 import 'dart:mirrors';
 
 import 'package:observe/observe.dart';

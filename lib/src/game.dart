@@ -128,8 +128,6 @@ class RiskGameStateImpl extends Object with Observable implements RiskGameState 
     if (event is PlayerJoined) {
       players[event.playerId] = new PlayerStateImpl(event.playerId, event.name,
           event.avatar, event.color);
-      // Workaround before https://codereview.chromium.org/213743012/
-      notifyPropertyChange(#players, {}, players);
     } else if (event is GameStarted) {
       started = true;
       setupPhase = true;
@@ -139,8 +137,6 @@ class RiskGameStateImpl extends Object with Observable implements RiskGameState 
       countries.putIfAbsent(event.country, () => new CountryStateImpl(
           event.country, playerId: event.playerId)).armies++;
       players[event.playerId].reinforcement--;
-      // Workaround before https://codereview.chromium.org/213743012/
-      notifyPropertyChange(#countries, {}, countries);
     } else if (event is NextPlayer) {
       activePlayerId = event.playerId;
       players[event.playerId].reinforcement = event.reinforcement;
