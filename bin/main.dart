@@ -17,17 +17,20 @@ main(List<String> args) {
       print("Risk is running on http://localhost:$port\nBase path: $path");
       server.serverHeader = "Risk Server";
       server.idleTimeout = const Duration(seconds: 30);
-      
+
       VirtualDirectory vDir = new VirtualDirectory(path)
           ..jailRoot = false
           ..allowDirectoryListing = true;
       vDir.directoryHandler = (Directory dir, HttpRequest request) {
         vDir.serveFile(new File( new Uri.file(dir.path).resolve('index.html').toFilePath()), request);
       };
-   
+
       var riskServer = new RiskWsServer();
       server.listen((HttpRequest req) {
-        if (req.uri.path == '/ws') {
+        if (req.uri.path == '/hello') {
+          req.response.write(new List.generate(1000, (i) => '$i - Hello world!').join("\n"));
+          req.response.close();
+        } else if (req.uri.path == '/ws') {
           WebSocketTransformer.upgrade(req).then(riskServer.handleWebSocket);
         } else if (req.uri.path == '/new') {
           riskServer = new RiskWsServer();
