@@ -28,7 +28,9 @@ main(List<String> args) {
       var riskServer = new RiskWsServer();
       server.listen((HttpRequest req) {
         if (req.uri.path == '/hello') {
-          req.response.write(new List.generate(1000, (i) => '$i - Hello world!').join("\n"));
+          var nParam = req.uri.queryParameters['n'];
+          int n = nParam == null ? 1 : int.parse(nParam, onError: (_) => 1);
+          req.response.write(new List.generate(n, (i) => '$i - Hello world!').join("\n"));
           req.response.close();
         } else if (req.uri.path == '/ws') {
           WebSocketTransformer.upgrade(req).then(riskServer.handleWebSocket);
