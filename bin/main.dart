@@ -38,6 +38,7 @@ main(List<String> args) {
           riskServer = new RiskWsServer();
           req.response.redirect(req.uri.resolve('/'));
         } else {
+          req.response.persistentConnection = false;
           vDir.serveRequest(req);
         }
       });
