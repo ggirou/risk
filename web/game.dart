@@ -30,8 +30,6 @@ class RiskGame extends PolymerElement {
   RiskGame.fromWebSocket(this.ws, {Iterable<EngineEvent> snapshot: const []}): super.created() {
     new Stream.fromIterable(snapshot).listen(handleEvents);
     var eventStream = ws.onMessage.map((e) => e.data).map(JSON.decode).map(_printEvent("IN")).map(EVENT.decode).listen(handleEvents);
-    // Keep connection alive
-    new Timer.periodic(const Duration(seconds: 30), (_) => ws.sendString(JSON.encode('ping')));
   }
 
   handleEvents(EngineEvent event) {

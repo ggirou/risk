@@ -21,7 +21,7 @@ main(List<String> args) {
           ..jailRoot = false
           ..allowDirectoryListing = true;
       vDir.directoryHandler = (Directory dir, HttpRequest request) {
-        vDir.serveFile(new File( new Uri.file(dir.path).resolve('index.html').toFilePath()), request);
+        vDir.serveFile(new File(new Uri.file(dir.path).resolve('index.html').toFilePath()), request);
       };
 
       var riskServer = new RiskWsServer();
@@ -55,23 +55,23 @@ class RiskWsServer {
   RiskWsServer(): this._(new StreamController.broadcast());
   RiskWsServer._(StreamController eventController)
       : outputStream = eventController,
-          engine = new RiskGameEngine(eventController, new RiskGameStateImpl());
+        engine = new RiskGameEngine(eventController, new RiskGameStateImpl());
 
   void handleWebSocket(WebSocket ws) {
     final playerId = connectPlayer(ws);
 
     // Decode JSON
-    ws.map(JSON.decode)
+    ws.map(JSON.decode) //
     // Check if it's decodable
-    .where(EventCodec.canDecode)
+    .where(EventCodec.canDecode) //
     // Log incoming events
-    .map(logEvent("IN", playerId))
+    .map(logEvent("IN", playerId)) //
     // Decode events
-    .map(EVENT.decode)
+    .map(EVENT.decode) //
     // Avoid unknown events and cheaters
-    .where((event) => event is PlayerEvent && event.playerId == playerId)
+    .where((event) => event is PlayerEvent && event.playerId == playerId) //
     // Handle events in game engine
-    .listen(engine.handle)
+    .listen(engine.handle) //
     // Connection closed
     .onDone(() => print("Player $playerId left"));
   }
@@ -87,8 +87,15 @@ class RiskWsServer {
     engine.history.forEach(stream.add);
     stream.addStream(outputStream.stream);
 
-    ws.addStream(stream.stream.map(EVENT.encode).map(logEvent("OUT", playerId)
-        ).map(JSON.encode));
+    ws.addStream(stream.stream //
+    // Encode events
+    .map(EVENT.encode) //
+    // Log outgoing events
+    .map(logEvent("OUT", playerId)) //
+    // Encode JSON
+    .map(JSON.encode));
+
+    ws.pingInterval = const Duration(seconds: 30);
 
     print("Player $playerId connected");
     return playerId;
