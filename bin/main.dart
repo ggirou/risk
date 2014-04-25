@@ -16,7 +16,6 @@ main(List<String> args) {
     HttpServer.bind(InternetAddress.ANY_IP_V4, port).then((HttpServer server) {
       print("Risk is running on http://localhost:$port\nBase path: $path");
       server.serverHeader = "Risk Server";
-      server.idleTimeout = const Duration(seconds: 30);
 
       VirtualDirectory vDir = new VirtualDirectory(path)
           ..jailRoot = false
@@ -38,7 +37,6 @@ main(List<String> args) {
           riskServer = new RiskWsServer();
           req.response.redirect(req.uri.resolve('/'));
         } else {
-          req.response.persistentConnection = false;
           vDir.serveRequest(req);
         }
       });
@@ -64,6 +62,8 @@ class RiskWsServer {
 
     // Decode JSON
     ws.map(JSON.decode)
+    // Check if it's decodable
+    .where(EventCodec.canDecode)
     // Log incoming events
     .map(logEvent("IN", playerId))
     // Decode events

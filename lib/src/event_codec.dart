@@ -10,6 +10,7 @@ class EventCodec extends Codec<Object, Map> {
   final decoder = const EventDecoder();
   final encoder = const EventEncoder();
   const EventCodec();
+  static bool canDecode(object) => object is Map && object.containsKey('event');
 }
 
 /**
