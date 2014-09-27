@@ -7,9 +7,23 @@ import 'package:http_server/http_server.dart' show VirtualDirectory;
 import 'package:risk/server.dart';
 
 const DEFAULT_PORT = 8080;
-const DEFAULT_PATH = '../web';
+const DEFAULT_PATH = '../build/web';
 
 main(List<String> args) {
+  if (!FileSystemEntity.isFileSync('bin/server.dart')) {
+    throw new StateError('Server expects to be started the root of the project.');
+  }
+
+  ProcessSignal.SIGINT.watch().listen((sig) {
+    print('Got SIGINT');
+    exit(0);
+  });
+
+  ProcessSignal.SIGTERM.watch().listen((sig) {
+    print('Got SIGTERM');
+    exit(0);
+  });
+
   int port = args.length > 0 ? int.parse(args[0], onError: (_) => DEFAULT_PORT) : DEFAULT_PORT;
   String path = Platform.script.resolve(args.length > 1 ? args[1] : DEFAULT_PATH).toFilePath();
   runZoned(() {
@@ -25,8 +39,17 @@ main(List<String> args) {
       };
 
       var riskServer = new RiskWsServer();
+
+      sendOk(HttpRequest req) => (req.response
+          ..headers.add('Content-Type', 'text/plain')
+          ..write('ok')).close();
+
       server.listen((HttpRequest req) {
-        if (req.uri.path == '/hello') {
+        if (req.uri.path == '/_ah/health' || req.uri.path == '/_ah/start') {
+          sendOk(req);
+        } else if (req.uri.path == '/_ah/stop') {
+          sendOk(req).then((_) => exit(0));
+        } else if (req.uri.path == '/hello') {
           var nParam = req.uri.queryParameters['n'];
           int n = nParam == null ? 1 : int.parse(nParam, onError: (_) => 1);
           req.response.write(new List.generate(n, (i) => '$i - Hello world!').join("\n"));
@@ -52,7 +75,7 @@ class RiskWsServer {
   final StreamController outputStream;
   int currentPlayerId = 1;
 
-  RiskWsServer(): this._(new StreamController.broadcast());
+  RiskWsServer() : this._(new StreamController.broadcast());
   RiskWsServer._(StreamController eventController)
       : outputStream = eventController,
         engine = new RiskGameEngine(eventController, new RiskGameStateImpl());
